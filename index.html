@@ -1,1 +1,259 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Polyglot Apex</title>
+    <style>
+        :root {
+            --bg: #F0F2F5;
+            --surface: #FFFFFF;
+            --text-main: #2D3436;
+            --text-sub: #636E72;
+            --primary: #6C5CE7; /* Elegant Purple */
+            --secondary: #00CEC9; /* Fresh Teal */
+            --accent: #FAB1A0;
+            --shadow: rgba(108, 92, 231, 0.2);
+            --nav-bg: #FFFFFF;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0F0C29;
+            --surface: #1B1B2F;
+            --text-main: #EFEFEF;
+            --text-sub: #A0A0A0;
+            --primary: #A29BFE;
+            --shadow: rgba(0, 0, 0, 0.4);
+            --nav-bg: #16213E;
+        }
+
+        body { 
+            font-family: 'Inter', -apple-system, sans-serif; 
+            margin: 0; background: var(--bg); color: var(--text-main);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding-bottom: 80px; /* Space for bottom nav */
+        }
+
+        .header-glass {
+            padding: 25px 20px;
+            background: var(--surface);
+            border-bottom-right-radius: 30px;
+            border-bottom-left-radius: 30px;
+            box-shadow: 0 4px 20px var(--shadow);
+            margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .main-card {
+            background: var(--surface);
+            margin: 15px;
+            padding: 25px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px var(--shadow);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Floating Input Fields */
+        .input-group { position: relative; margin-bottom: 20px; }
+        input, select {
+            width: 100%; padding: 16px; border-radius: 16px;
+            border: 2px solid transparent; background: var(--bg);
+            color: var(--text-main); font-size: 16px; transition: 0.3s;
+            box-sizing: border-box;
+        }
+        input:focus { border-color: var(--primary); outline: none; background: var(--surface); }
+
+        /* Modern Buttons */
+        .btn-action {
+            width: 100%; padding: 18px; border-radius: 20px; border: none;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; font-weight: 700; font-size: 16px;
+            box-shadow: 0 8px 15px var(--shadow);
+            cursor: pointer; transform: translateY(0); transition: 0.2s;
+        }
+        .btn-action:active { transform: translateY(4px); box-shadow: 0 2px 5px var(--shadow); }
+
+        /* Bottom Navigation Bar */
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; height: 70px;
+            background: var(--nav-bg); display: flex; justify-content: space-around;
+            align-items: center; box-shadow: 0 -5px 25px rgba(0,0,0,0.1);
+            border-top: 1px solid var(--shadow); z-index: 100;
+        }
+        .nav-item { color: var(--text-sub); font-size: 24px; cursor: pointer; text-align: center; }
+        .nav-item.active { color: var(--primary); transform: scale(1.2); }
+
+        /* Language Grid */
+        .lang-pill {
+            display: flex; align-items: center; padding: 20px;
+            background: var(--surface); border-radius: 20px; margin-bottom: 12px;
+            box-shadow: 0 4px 10px var(--shadow); border: 2px solid transparent;
+        }
+        .lang-pill:active { border-color: var(--primary); }
+
+        .hidden { display: none; }
+        .topic-tag { 
+            background: var(--primary); color: white; padding: 4px 12px; 
+            border-radius: 10px; font-size: 11px; font-weight: bold; margin-bottom: 8px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-glass">
+        <div>
+            <span style="font-size: 12px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 2px;">Your Progress</span>
+            <h2 id="current-title" style="margin:0; font-size: 24px;">Polyglot Lab</h2>
+        </div>
+        <div onclick="toggleTheme()" style="font-size: 24px; cursor: pointer;">🌓</div>
+    </div>
+
+    <div id="screen-lang" class="screen">
+        <div style="padding: 20px;">
+            <h3 style="color: var(--text-sub)">Choose a track</h3>
+            <div class="lang-pill" onclick="selectLang('Thai')"><span style="font-size:30px; margin-right:15px">🇹🇭</span> <b>Thai Language</b></div>
+            <div class="lang-pill" onclick="selectLang('Chinese')"><span style="font-size:30px; margin-right:15px">🇨🇳</span> <b>Mandarin Chinese</b></div>
+            <div class="lang-pill" onclick="selectLang('Korean')"><span style="font-size:30px; margin-right:15px">🇰🇷</span> <b>Korean Studio</b></div>
+        </div>
+    </div>
+
+    <div id="screen-input" class="screen hidden">
+        <div class="main-card">
+            <h3>Add New Knowledge</h3>
+            <select id="topic-select" onchange="toggleTopicInput()"></select>
+            <input type="text" id="topic-new" placeholder="Topic Name...">
+            <input type="text" id="word-target" placeholder="The Word">
+            <input type="text" id="word-translation" placeholder="Meaning">
+            <button class="btn-action" onclick="saveVocab()">Save to Memory</button>
+        </div>
+    </div>
+
+    <div id="screen-list" class="screen hidden">
+        <div id="list-container" style="padding: 10px;"></div>
+    </div>
+
+    <div id="screen-quiz" class="screen hidden">
+        <div class="main-card" style="text-align: center; min-height: 250px; display: flex; flex-direction: column; justify-content: center;">
+            <div id="quiz-content"></div>
+        </div>
+    </div>
+
+    <div class="bottom-nav" id="nav-bar">
+        <div class="nav-item active" onclick="navTo('screen-lang')">🌍</div>
+        <div class="nav-item" onclick="navTo('screen-input')">✍️</div>
+        <div class="nav-item" onclick="navTo('screen-list'); renderList();">📚</div>
+        <div class="nav-item" onclick="navTo('screen-quiz'); setupQuiz();">⚡</div>
+    </div>
+
+<script>
+    let currentLang = '';
+    
+    // Theme logic
+    function toggleTheme() {
+        const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('apex-theme', theme);
+    }
+    if(localStorage.getItem('apex-theme') === 'dark') toggleTheme();
+
+    // Navigation logic
+    function navTo(screenId) {
+        if(!currentLang && screenId !== 'screen-lang') {
+            alert("Please pick a language first!");
+            return;
+        }
+        document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+        document.getElementById(screenId).classList.remove('hidden');
+        
+        // Update nav icons
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        // (Simple logic to highlight active based on click)
+        event.currentTarget.classList.add('active');
+    }
+
+    function selectLang(lang) {
+        currentLang = lang;
+        document.getElementById('current-title').innerText = lang;
+        navTo('screen-input');
+        openInputScreen();
+    }
+
+    // Core Logic
+    function getStorage() { return JSON.parse(localStorage.getItem('apex_' + currentLang)) || {}; }
+
+    function openInputScreen() {
+        const data = getStorage();
+        const select = document.getElementById('topic-select');
+        select.innerHTML = '<option value="NEW">+ New Topic</option>';
+        Object.keys(data).forEach(t => select.innerHTML += `<option value="${t}">${t}</option>`);
+        toggleTopicInput();
+    }
+
+    function toggleTopicInput() {
+        const isNew = document.getElementById('topic-select').value === "NEW";
+        document.getElementById('topic-new').style.display = isNew ? 'block' : 'none';
+    }
+
+    function saveVocab() {
+        const select = document.getElementById('topic-select');
+        let topic = select.value === "NEW" ? document.getElementById('topic-new').value.trim() : select.value;
+        const target = document.getElementById('word-target').value.trim();
+        const trans = document.getElementById('word-translation').value.trim();
+
+        if(!topic || !target || !trans) return alert("Fill all fields");
+
+        const data = getStorage();
+        if(!data[topic]) data[topic] = [];
+        data[topic].push({ target, trans });
+        localStorage.setItem('apex_' + currentLang, JSON.stringify(data));
+        
+        document.getElementById('word-target').value = '';
+        document.getElementById('word-translation').value = '';
+        alert("Saved!");
+        navTo('screen-list'); renderList();
+    }
+
+    function renderList() {
+        const data = getStorage();
+        const container = document.getElementById('list-container');
+        container.innerHTML = '';
+        for (let topic in data) {
+            let section = `<div class="main-card">
+                <span class="topic-tag">${topic}</span>`;
+            data[topic].forEach(item => {
+                section += `<div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--bg)">
+                    <b>${item.target}</b> <span style="color:var(--primary)">${item.trans}</span>
+                </div>`;
+            });
+            section += `</div>`;
+            container.innerHTML += section;
+        }
+    }
+
+    function setupQuiz() {
+        const data = getStorage();
+        let all = [];
+        for(let t in data) data[t].forEach(w => all.push(w));
+        const area = document.getElementById('quiz-content');
+        
+        if(!all.length) { area.innerHTML = "<h3>Add words first!</h3>"; return; }
+
+        const q = all[Math.floor(Math.random() * all.length)];
+        area.innerHTML = `
+            <span style="color:var(--text-sub)">WHAT IS THIS?</span>
+            <h1 style="font-size:42px; margin:10px 0;">${q.target}</h1>
+            <input type="text" id="q-ans" placeholder="Type here..." autofocus>
+            <button class="btn-action" onclick="checkQuiz('${q.trans.toLowerCase()}')">Check</button>
+        `;
+    }
+
+    function checkQuiz(correct) {
+        const user = document.getElementById('q-ans').value.toLowerCase().trim();
+        if(user === correct) { alert("Correct! ✨"); setupQuiz(); }
+        else alert("Oops! It means: " + correct);
+    }
+</script>
+</body>
+</html>
