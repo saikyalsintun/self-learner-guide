@@ -199,18 +199,54 @@
     function setupQuiz() {
         const data = getLocalData();
         let all = [];
-        for(let t in data) data[t].forEach(w => all.push(w));
+        // Flatten all topics into one list for the quiz
+        for(let t in data) {
+            data[t].forEach(w => {
+                // We store the topic name too, just in case you want to see it
+                all.push({...w, topic: t});
+            });
+        }
+        
         const area = document.getElementById('quiz-content');
         
-        if(!all.length) { area.innerHTML = "<h3>Add words first!</h3>"; return; }
+        if(!all.length) { 
+            area.innerHTML = "<h3>Add some words first!</h3>"; 
+            return; 
+        }
 
+        // Pick a random word
         const q = all[Math.floor(Math.random() * all.length)];
+        
         area.innerHTML = `
-            <span style="color:var(--text-sub); font-size:12px; font-weight:800">TRANSLATE</span>
-            <h1 style="font-size:42px; margin:10px 0;">${q.target}</h1>
-            <input type="text" id="q-ans" placeholder="Type here..." autofocus>
-            <button class="btn-action" onclick="checkQuiz('${q.trans.toLowerCase()}')">Check</button>
+            <span class="topic-tag" style="background:var(--secondary)">${q.topic}</span>
+            <p style="color:var(--text-sub); font-size:12px; font-weight:800; margin-top:10px">WRITE THE FOREIGN WORD FOR:</p>
+            <h1 style="font-size:42px; margin:10px 0; color:var(--primary)">${q.trans}</h1>
+            
+            <input type="text" id="q-ans" 
+                   placeholder="Type in ${currentLang}..." 
+                   autocapitalize="none" 
+                   autocomplete="off" 
+                   spellcheck="false"
+                   autofocus>
+                   
+            <button class="btn-action" onclick="checkQuiz('${q.target.trim()}')">Check Answer</button>
         `;
+        
+        // Focus the input automatically for faster typing
+        setTimeout(() => document.getElementById('q-ans').focus(), 100);
+    }
+
+    function checkQuiz(correctWord) {
+        const userAns = document.getElementById('q-ans').value.trim();
+        
+        // We compare exactly, but you might want to ignore casing for some languages
+        if(userAns.toLowerCase() === correctWord.toLowerCase()) { 
+            alert("Perfect! ✨\n" + userAns + " is correct."); 
+            setupQuiz(); 
+        } else { 
+            alert("Not quite!\n\nThe correct word is: " + correctWord + "\nYou wrote: " + userAns); 
+            // We don't call setupQuiz here so they can see the mistake
+        }
     }
 
     function checkQuiz(correct) {
