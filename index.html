@@ -5,152 +5,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#6C5CE7">
-    <title>Polyglot Flow | Gamified</title>
+    <title>Polyglot Flow | Game Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Noto+Sans+KR:wght@500;700&family=Noto+Sans+Thai:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
-            --primary: #6C5CE7;
-            --secondary: #A29BFE;
-            --accent: #00CEC9;
-            --bg: #F8F9FE;
-            --card-bg: rgba(255, 255, 255, 0.9);
-            --text: #2D3436;
-            --text-light: #636E72;
-            --glass: rgba(255, 255, 255, 0.7);
-            --shadow: 0 20px 40px rgba(108, 92, 231, 0.08);
+            --primary: #6C5CE7; --secondary: #A29BFE; --accent: #00CEC9; --bg: #F8F9FE;
+            --card-bg: rgba(255, 255, 255, 0.9); --text: #2D3436; --text-light: #636E72;
+            --glass: rgba(255, 255, 255, 0.7); --shadow: 0 20px 40px rgba(108, 92, 231, 0.08);
         }
-
         [data-theme="dark"] {
-            --bg: #0C0C1E;
-            --card-bg: rgba(30, 30, 50, 0.9);
-            --text: #F1F2F6;
-            --text-light: #A4A4B5;
-            --glass: rgba(20, 20, 40, 0.7);
-            --shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            --bg: #0C0C1E; --card-bg: rgba(30, 30, 50, 0.9); --text: #F1F2F6;
+            --text-light: #A4A4B5; --glass: rgba(20, 20, 40, 0.7);
         }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Plus Jakarta Sans', 'Noto Sans Thai', 'Noto Sans KR', sans-serif;
-            margin: 0; background: var(--bg); color: var(--text);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            padding-bottom: 120px;
+            margin: 0; background: var(--bg); color: var(--text); padding-bottom: 120px;
         }
 
-        /* --- Gamified Header --- */
-        .header {
-            padding: 20px; background: var(--glass); backdrop-filter: blur(15px);
-            position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
+        /* Header & Progress */
+        .header { padding: 20px; background: var(--glass); backdrop-filter: blur(15px); position: sticky; top: 0; z-index: 100; }
         .stats-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        
-        .xp-bar-container {
-            width: 100%; height: 8px; background: rgba(0,0,0,0.05); border-radius: 10px; overflow: hidden;
-            position: relative;
-        }
-        .xp-bar-fill {
-            height: 100%; width: 30%; background: linear-gradient(90deg, var(--primary), var(--accent));
-            transition: width 0.5s ease;
-        }
+        .xp-bar-container { width: 100%; height: 8px; background: rgba(0,0,0,0.05); border-radius: 10px; overflow: hidden; }
+        .xp-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: 0.5s; }
 
-        /* --- Language Tabs --- */
-        .lang-tabs {
-            display: flex; gap: 10px; padding: 10px 20px; overflow-x: auto; scrollbar-width: none;
-        }
-        .lang-tabs::-webkit-scrollbar { display: none; }
-        
-        .tab {
-            padding: 10px 22px; border-radius: 16px; background: var(--card-bg);
-            border: 2px solid transparent; white-space: nowrap; font-weight: 700; cursor: pointer;
-            box-shadow: var(--shadow); transition: 0.3s; color: var(--text-light);
-        }
-        .tab.active {
-            background: var(--primary); color: white; border-color: var(--secondary);
-            transform: translateY(-3px);
-        }
+        /* Tabs */
+        .lang-tabs { display: flex; gap: 10px; padding: 10px 20px; overflow-x: auto; scrollbar-width: none; }
+        .tab { padding: 10px 22px; border-radius: 16px; background: var(--card-bg); font-weight: 700; cursor: pointer; box-shadow: var(--shadow); transition: 0.3s; color: var(--text-light); white-space: nowrap; border: 2px solid transparent; }
+        .tab.active { background: var(--primary); color: white; border-color: var(--secondary); transform: translateY(-3px); }
 
-        /* --- Visual Cards --- */
         .container { max-width: 500px; margin: 0 auto; padding: 15px; }
-        
-        .main-card {
-            background: var(--card-bg); border-radius: 30px; padding: 25px;
-            box-shadow: var(--shadow); border: 1px solid rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px); animation: slideUp 0.5s ease-out;
+        .main-card { background: var(--card-bg); border-radius: 30px; padding: 25px; box-shadow: var(--shadow); backdrop-filter: blur(10px); }
+
+        /* Matching Game Styles */
+        .matching-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .match-btn { 
+            padding: 15px 10px; border-radius: 15px; border: 2px solid var(--bg);
+            background: var(--card-bg); font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex; align-items: center; justify-content: center; text-align: center;
+            min-height: 60px; word-break: break-word;
         }
+        .match-btn.selected { border-color: var(--primary); background: var(--secondary); color: white; }
+        .match-btn.matched { visibility: hidden; opacity: 0; pointer-events: none; }
+        .match-btn.error { border-color: #ff7675; background: #ffeaa7; }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- Interactive Inputs --- */
+        /* General UI */
         .field { margin-bottom: 20px; }
-        .field label { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; margin-left: 5px; }
+        .field label { font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-left: 5px; }
+        textarea, select, input { width: 100%; padding: 16px; border-radius: 20px; border: none; background: rgba(0,0,0,0.03); color: var(--text); margin-top: 8px; font-family: inherit; }
+        .btn-glow { width: 100%; padding: 20px; border-radius: 22px; border: none; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; font-weight: 800; box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3); cursor: pointer; }
         
-        input, select, textarea {
-            width: 100%; padding: 16px; border-radius: 20px; border: 2px solid transparent;
-            background: rgba(0,0,0,0.03); color: var(--text); font-size: 16px; font-family: inherit;
-            margin-top: 8px; transition: 0.3s;
-        }
-        [data-theme="dark"] input { background: rgba(255,255,255,0.05); }
+        .item-card { background: var(--card-bg); border-radius: 24px; padding: 20px; margin-bottom: 12px; box-shadow: var(--shadow); border-left: 6px solid var(--primary); }
+        .item-target { font-size: 20px; font-weight: 700; color: var(--text); }
+        .item-trans { font-size: 14px; color: var(--text-light); }
+
+        .nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; height: 75px; background: var(--card-bg); border-radius: 25px; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.2); }
+        .nav-link { color: var(--text-light); font-size: 22px; cursor: pointer; transition: 0.3s; }
+        .nav-link.active { color: var(--primary); transform: translateY(-5px); }
         
-        input:focus, textarea:focus { border-color: var(--primary); outline: none; background: var(--card-bg); }
-
-        .btn-glow {
-            width: 100%; padding: 20px; border-radius: 22px; border: none;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white; font-weight: 800; font-size: 16px; cursor: pointer;
-            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3); transition: 0.3s;
-        }
-        .btn-glow:active { transform: scale(0.95); opacity: 0.9; }
-
-        /* --- Library Items --- */
-        .item-card {
-            background: var(--card-bg); border-radius: 24px; padding: 20px; margin-bottom: 12px;
-            box-shadow: var(--shadow); border-left: 6px solid var(--primary);
-        }
-        .item-topic { font-size: 10px; font-weight: 800; color: var(--text-light); text-transform: uppercase; margin-bottom: 5px; }
-        .item-target { font-size: 22px; font-weight: 700; margin-bottom: 4px; color: var(--text); }
-        .item-trans { font-size: 15px; color: var(--text-light); }
-
-        /* --- Navigation --- */
-        .nav {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 400px; height: 75px; background: var(--card-bg);
-            border-radius: 25px; display: flex; justify-content: space-around; align-items: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.2);
-        }
-        .nav-link { color: var(--text-light); font-size: 22px; transition: 0.3s; position: relative; cursor: pointer; }
-        .nav-link.active { color: var(--primary); }
-        .nav-link.active::after {
-            content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
-            width: 5px; height: 5px; background: var(--primary); border-radius: 50%;
-        }
-
         .hidden { display: none; }
-        .pulse { animation: pulseAnim 0.3s ease; }
-        @keyframes pulseAnim { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .quiz-toggle { display: flex; gap: 10px; margin-bottom: 20px; }
+        .toggle-btn { flex: 1; padding: 10px; border-radius: 12px; border: none; background: var(--bg); font-weight: 800; font-size: 12px; cursor: pointer; color: var(--text-light); }
+        .toggle-btn.active { background: var(--secondary); color: white; }
     </style>
 </head>
-<body data-theme="light">
+<body>
 
     <div class="header">
         <div class="stats-row">
-            <h2 style="margin:0; font-size: 18px; font-weight: 800;">PolyglotFlow</h2>
-            <div id="sync-status" style="font-size: 11px; font-weight: 800; color: var(--accent);"><i class="fas fa-circle-check"></i> SAVED</div>
-            <div onclick="toggleTheme()" style="cursor:pointer; font-size: 18px;"><i class="fas fa-moon"></i></div>
+            <h2 style="margin:0; font-size: 18px;">PolyglotFlow</h2>
+            <div id="sync-status" style="font-size: 11px; font-weight: 800; color: var(--accent);"><i class="fas fa-circle-check"></i> UPDATED</div>
+            <div onclick="toggleTheme()" style="cursor:pointer;"><i class="fas fa-moon"></i></div>
         </div>
-        <div style="display:flex; justify-content: space-between; font-size: 10px; font-weight: 800; color: var(--text-light); margin-bottom: 4px;">
-            <span>DAILY GOAL</span>
-            <span id="xp-text">3/10 Words</span>
-        </div>
-        <div class="xp-bar-container">
-            <div class="xp-bar-fill" id="xp-fill"></div>
-        </div>
+        <div class="xp-bar-container"><div class="xp-bar-fill" id="xp-fill"></div></div>
     </div>
 
-    <div class="lang-tabs">
+    <div class="lang-tabs" id="lang-tabs">
         <div class="tab active" onclick="selectLang('Thai')" data-lang="Thai">🇹🇭 Thai</div>
         <div class="tab" onclick="selectLang('Chinese')" data-lang="Chinese">🇨🇳 Chinese</div>
         <div class="tab" onclick="selectLang('Korean')" data-lang="Korean">🇰🇷 Korean</div>
@@ -158,62 +91,45 @@
 
     <div id="screen-input" class="screen container">
         <div class="main-card">
-            <div class="field">
-                <label>Context / Topic</label>
-                <select id="topic-select" onchange="toggleTopicInput()"></select>
-                <input type="text" id="topic-new" placeholder="E.g. Restaurant, Travel..." style="margin-top:10px">
-            </div>
-            <div class="field">
-                <label id="target-label">Thai Sentence</label>
-                <textarea id="word-target" placeholder="Write it here..."></textarea>
-            </div>
-            <div class="field">
-                <label>Meaning</label>
-                <textarea id="word-translation" placeholder="What does it mean?"></textarea>
-            </div>
-            <button class="btn-glow" id="save-btn" onclick="saveVocab()">
-                <i class="fas fa-magic"></i> Add to Library
-            </button>
+            <div class="field"><label>Topic</label><select id="topic-select" onchange="toggleTopicInput()"></select><input type="text" id="topic-new" placeholder="New Topic Name..." style="display:none"></div>
+            <div class="field"><label id="target-label">Thai Sentence</label><textarea id="word-target" placeholder="Script here..."></textarea></div>
+            <div class="field"><label>Meaning</label><textarea id="word-translation" placeholder="Translation here..."></textarea></div>
+            <button class="btn-glow" onclick="saveVocab()"><i class="fas fa-plus"></i> Add to Library</button>
         </div>
     </div>
 
-    <div id="screen-list" class="screen hidden container">
-        <div id="list-container"></div>
-    </div>
+    <div id="screen-list" class="screen hidden container"><div id="list-container"></div></div>
 
     <div id="screen-quiz" class="screen hidden container">
-        <div class="main-card" id="quiz-content" style="text-align: center; min-height: 350px; display: flex; flex-direction: column; justify-content: center;">
+        <div class="quiz-toggle">
+            <button class="toggle-btn active" id="mode-write" onclick="setQuizMode('write')">WRITING</button>
+            <button class="toggle-btn" id="mode-match" onclick="setQuizMode('match')">MATCHING</button>
         </div>
+        <div class="main-card" id="quiz-content"></div>
     </div>
 
     <nav class="nav">
-        <div class="nav-link active" onclick="navTo('screen-input')"><i class="fas fa-plus-circle"></i></div>
-        <div class="nav-link" onclick="navTo('screen-list')"><i class="fas fa-book-open"></i></div>
-        <div class="nav-link" onclick="navTo('screen-quiz')"><i class="fas fa-bolt-lightning"></i></div>
+        <div class="nav-link active" onclick="navTo('screen-input')"><i class="fas fa-pen-nib"></i></div>
+        <div class="nav-link" onclick="navTo('screen-list')"><i class="fas fa-layer-group"></i></div>
+        <div class="nav-link" onclick="navTo('screen-quiz')"><i class="fas fa-gamepad"></i></div>
     </nav>
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZdK3xJD4uSHxs6KKqNpx8XEj7fwNrodO3ldnrrdUzLv5tUosacAvmDRBq-u-tIaYk/exec";
     let currentLang = 'Thai';
     let currentScreen = 'screen-input';
-    let dailyCount = 0;
+    let quizMode = 'write';
+    let selectedLeft = null;
+    let selectedRight = null;
 
-    window.onload = () => {
-        selectLang('Thai');
-        updateProgress();
-    };
+    window.onload = () => { selectLang('Thai'); };
 
-    function toggleTheme() {
-        const body = document.body;
-        const isDark = body.getAttribute('data-theme') === 'dark';
-        body.setAttribute('data-theme', isDark ? 'light' : 'dark');
-    }
+    function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
 
     function selectLang(lang) {
         currentLang = lang;
         document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.lang === lang));
         document.getElementById('target-label').innerText = `${lang} Sentence`;
-        
         updateTopicDropdown();
         if (currentScreen === 'screen-list') renderList();
         if (currentScreen === 'screen-quiz') setupQuiz();
@@ -224,12 +140,7 @@
         currentScreen = screenId;
         document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
         document.getElementById(screenId).classList.remove('hidden');
-        
-        document.querySelectorAll('.nav-link').forEach((l, idx) => {
-            const screens = ['screen-input', 'screen-list', 'screen-quiz'];
-            l.classList.toggle('active', screens[idx] === screenId);
-        });
-
+        document.querySelectorAll('.nav-link').forEach((l, i) => l.classList.toggle('active', ['screen-input','screen-list','screen-quiz'][i] === screenId));
         if(screenId === 'screen-list') renderList();
         if(screenId === 'screen-quiz') setupQuiz();
     }
@@ -239,118 +150,126 @@
     function updateTopicDropdown() {
         const data = getLocalData();
         const select = document.getElementById('topic-select');
-        select.innerHTML = '<option value="NEW">+ Create New Topic</option>';
+        select.innerHTML = '<option value="NEW">+ New Topic</option>';
         Object.keys(data).forEach(t => select.innerHTML += `<option value="${t}">${t}</option>`);
         toggleTopicInput();
     }
 
-    function toggleTopicInput() {
-        document.getElementById('topic-new').style.display = document.getElementById('topic-select').value === "NEW" ? 'block' : 'none';
-    }
+    function toggleTopicInput() { document.getElementById('topic-new').style.display = document.getElementById('topic-select').value === "NEW" ? 'block' : 'none'; }
 
     async function syncFromCloud() {
         const label = document.getElementById('sync-status');
-        label.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SYNCING';
+        label.innerHTML = '<i class="fas fa-sync fa-spin"></i>';
         try {
             const res = await fetch(SCRIPT_URL);
             const cloudData = await res.json();
             const organized = {};
-            cloudData.forEach(item => {
-                if (item.lang === currentLang) {
-                    if (!organized[item.topic]) organized[item.topic] = [];
-                    organized[item.topic].push({ target: item.target, trans: item.trans });
-                }
-            });
+            cloudData.forEach(item => { if (item.lang === currentLang) { if (!organized[item.topic]) organized[item.topic] = []; organized[item.topic].push({ target: item.target, trans: item.trans }); } });
             localStorage.setItem('poly_' + currentLang, JSON.stringify(organized));
-            label.innerHTML = '<i class="fas fa-circle-check"></i> UPDATED';
+            label.innerHTML = '<i class="fas fa-circle-check"></i>';
             updateTopicDropdown();
             if (currentScreen === 'screen-list') renderList();
-        } catch (e) { label.innerHTML = '<i class="fas fa-circle-xmark"></i> OFFLINE'; }
+        } catch (e) { label.innerHTML = '<i class="fas fa-wifi"></i>'; }
     }
 
-    function updateProgress() {
-        const fill = document.getElementById('xp-fill');
-        const text = document.getElementById('xp-text');
-        const percentage = Math.min((dailyCount / 10) * 100, 100);
-        fill.style.width = percentage + '%';
-        text.innerText = `${dailyCount}/10 Words Today`;
-    }
-
-    async function saveVocab() {
+    function saveVocab() {
         const topic = document.getElementById('topic-select').value === "NEW" ? document.getElementById('topic-new').value.trim() : document.getElementById('topic-select').value;
         const target = document.getElementById('word-target').value.trim();
         const trans = document.getElementById('word-translation').value.trim();
-
         if(!topic || !target || !trans) return;
-
-        // Feedback
-        const btn = document.getElementById('save-btn');
-        btn.classList.add('pulse');
-        setTimeout(() => btn.classList.remove('pulse'), 300);
-
         const data = getLocalData();
         if(!data[topic]) data[topic] = [];
         data[topic].push({ target, trans });
         localStorage.setItem('poly_' + currentLang, JSON.stringify(data));
-
-        dailyCount++;
-        updateProgress();
-
         document.getElementById('word-target').value = '';
         document.getElementById('word-translation').value = '';
-        
-        fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({ lang: currentLang, topic, target, trans })
-        });
-        
-        setTimeout(() => navTo('screen-list'), 500);
+        fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ lang: currentLang, topic, target, trans }) });
+        navTo('screen-list');
     }
 
     function renderList() {
         const data = getLocalData();
         const container = document.getElementById('list-container');
         container.innerHTML = '';
-        
-        for (let topic in data) {
-            data[topic].forEach(item => {
-                container.innerHTML += `
-                    <div class="item-card">
-                        <div class="item-topic">${topic}</div>
-                        <div class="item-target">${item.target}</div>
-                        <div class="item-trans">${item.trans}</div>
-                    </div>
-                `;
-            });
-        }
+        for (let t in data) data[t].forEach(item => {
+            container.innerHTML += `<div class="item-card"><div style="font-size:9px; font-weight:800; color:var(--primary)">${t}</div><div class="item-target">${item.target}</div><div class="item-trans">${item.trans}</div></div>`;
+        });
+    }
+
+    function setQuizMode(mode) {
+        quizMode = mode;
+        document.getElementById('mode-write').classList.toggle('active', mode === 'write');
+        document.getElementById('mode-match').classList.toggle('active', mode === 'match');
+        setupQuiz();
     }
 
     function setupQuiz() {
         const data = getLocalData();
         let all = [];
-        for(let t in data) data[t].forEach(w => all.push({...w, topic: t}));
+        for(let t in data) data[t].forEach(w => all.push({...w}));
         const area = document.getElementById('quiz-content');
-        if(!all.length) { area.innerHTML = "<h3>Add words to unlock the quiz!</h3>"; return; }
+        if(!all.length) { area.innerHTML = "<h3>Add words first!</h3>"; return; }
 
-        const q = all[Math.floor(Math.random() * all.length)];
-        area.innerHTML = `
-            <div class="item-topic">${q.topic}</div>
-            <div style="font-size:12px; color:var(--primary); font-weight:800; margin-bottom:15px">HOW DO YOU SAY...</div>
-            <div style="font-size:32px; font-weight:800; margin-bottom:30px;">${q.trans}</div>
-            <textarea id="q-ans" placeholder="Type in ${currentLang}..." style="text-align:center; height:120px; font-size:18px;"></textarea>
-            <button class="btn-glow" style="margin-top:20px" onclick="checkQuiz('${q.target.replace(/'/g, "\\'")}')">Check Answer</button>
-        `;
-        setTimeout(() => document.getElementById('q-ans').focus(), 100);
+        if (quizMode === 'write') {
+            const q = all[Math.floor(Math.random() * all.length)];
+            area.innerHTML = `<div style="text-align:center"><div class="item-trans" style="margin-bottom:10px">HOW DO YOU SAY...</div><h2 style="margin-bottom:20px">${q.trans}</h2><textarea id="q-ans" placeholder="Type answer..."></textarea><button class="btn-glow" style="margin-top:20px" onclick="checkWrite('${q.target.replace(/'/g, "\\'")}')">Check Answer</button></div>`;
+        } else {
+            startMatchingGame(all);
+        }
     }
 
-    function checkQuiz(correct) {
-        const userAns = document.getElementById('q-ans').value.trim();
-        if (userAns.toLowerCase() === correct.toLowerCase()) {
-            alert("✨ Awesome! You got it right.");
-            setupQuiz();
+    function checkWrite(correct) {
+        const ans = document.getElementById('q-ans').value.trim();
+        if(ans.toLowerCase() === correct.toLowerCase()) { alert("Correct!"); setupQuiz(); } else { alert("Correct answer: " + correct); }
+    }
+
+    function startMatchingGame(all) {
+        const sampleSize = Math.min(all.length, 5);
+        const roundData = [];
+        const pool = [...all].sort(() => 0.5 - Math.random());
+        for(let i=0; i<sampleSize; i++) roundData.push(pool[i]);
+
+        const leftSide = [...roundData].sort(() => 0.5 - Math.random());
+        const rightSide = [...roundData].sort(() => 0.5 - Math.random());
+
+        const area = document.getElementById('quiz-content');
+        area.innerHTML = `<div style="text-align:center; font-weight:800; font-size:12px; margin-bottom:10px">MATCH THE PAIRS</div><div class="matching-grid" id="match-grid"></div>`;
+        
+        const grid = document.getElementById('match-grid');
+        roundData.forEach((_, i) => {
+            grid.innerHTML += `<div class="match-btn" onclick="handleMatchSelect(this, 'left', '${leftSide[i].target.replace(/'/g, "\\'")}')">${leftSide[i].trans}</div>`;
+            grid.innerHTML += `<div class="match-btn" onclick="handleMatchSelect(this, 'right', '${rightSide[i].target.replace(/'/g, "\\'")}')">${rightSide[i].target}</div>`;
+        });
+    }
+
+    function handleMatchSelect(btn, side, value) {
+        if(btn.classList.contains('matched')) return;
+
+        if(side === 'left') {
+            document.querySelectorAll('.match-btn').forEach(b => b.classList.remove('selected'));
+            selectedLeft = { btn, value };
+            btn.classList.add('selected');
         } else {
-            alert("Not quite!\n\nThe correct way is:\n" + correct);
+            if(!selectedLeft) return;
+            selectedRight = { btn, value };
+            
+            if(selectedLeft.value === selectedRight.value) {
+                selectedLeft.btn.classList.add('matched');
+                selectedRight.btn.classList.add('matched');
+                selectedLeft = null;
+                checkGameWin();
+            } else {
+                btn.classList.add('error');
+                setTimeout(() => btn.classList.remove('error'), 500);
+            }
+        }
+    }
+
+    function checkGameWin() {
+        const matched = document.querySelectorAll('.match-btn.matched').length;
+        const total = document.querySelectorAll('.match-btn').length;
+        if(matched === total) {
+            document.getElementById('quiz-content').innerHTML = `<div style="text-align:center"><h2>🎉 Match Clear!</h2><button class="btn-glow" onclick="setupQuiz()">Play Again</button></div>`;
         }
     }
 </script>
