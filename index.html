@@ -5,109 +5,175 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#6C5CE7">
-    <title>PolyglotFlow Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+KR:wght@400;700&family=Noto+Sans+Thai:wght@400;700&display=swap" rel="stylesheet">
+    <title>Polyglot Flow | Gamified</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Noto+Sans+KR:wght@500;700&family=Noto+Sans+Thai:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         :root {
-            --bg: #F1F5F9; --surface: #FFFFFF; --text-main: #1E293B; --text-sub: #64748B;
-            --primary: #6C5CE7; --secondary: #00CEC9; --shadow: rgba(108, 92, 231, 0.08);
+            --primary: #6C5CE7;
+            --secondary: #A29BFE;
+            --accent: #00CEC9;
+            --bg: #F8F9FE;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --text: #2D3436;
+            --text-light: #636E72;
+            --glass: rgba(255, 255, 255, 0.7);
+            --shadow: 0 20px 40px rgba(108, 92, 231, 0.08);
         }
+
         [data-theme="dark"] {
-            --bg: #0F172A; --surface: #1B263B; --text-main: #F1F5F9; --text-sub: #94A3B8;
-            --primary: #A29BFE; --shadow: rgba(0, 0, 0, 0.3);
+            --bg: #0C0C1E;
+            --card-bg: rgba(30, 30, 50, 0.9);
+            --text: #F1F2F6;
+            --text-light: #A4A4B5;
+            --glass: rgba(20, 20, 40, 0.7);
+            --shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         }
 
-        body { 
-            font-family: 'Inter', 'Noto Sans Thai', 'Noto Sans KR', sans-serif; 
-            margin: 0; background: var(--bg); color: var(--text-main); 
-            transition: 0.3s; padding-bottom: 100px;
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', 'Noto Sans Thai', 'Noto Sans KR', sans-serif;
+            margin: 0; background: var(--bg); color: var(--text);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            padding-bottom: 120px;
         }
 
-        .sticky-header {
-            position: sticky; top: 0; z-index: 1000;
-            background: var(--surface); border-bottom: 1px solid var(--shadow);
+        /* --- Gamified Header --- */
+        .header {
+            padding: 20px; background: var(--glass); backdrop-filter: blur(15px);
+            position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
-        .top-bar { padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
-
-        .lang-switcher {
-            display: flex; gap: 8px; padding: 10px 15px; overflow-x: auto;
-            scrollbar-width: none; border-top: 1px solid rgba(0,0,0,0.05);
-        }
-        .mini-pill {
-            padding: 8px 16px; border-radius: 20px; background: var(--bg);
-            border: 2px solid transparent; white-space: nowrap; font-size: 13px; font-weight: 700; cursor: pointer;
-            transition: 0.2s;
-        }
-        .mini-pill.active { border-color: var(--primary); color: var(--primary); background: var(--surface); transform: scale(1.05); }
-
-        .container { max-width: 600px; margin: 0 auto; padding: 10px; }
-        .card { background: var(--surface); margin-bottom: 12px; padding: 24px; border-radius: 22px; box-shadow: 0 4px 12px var(--shadow); }
-
-        .entry-row { padding: 15px 0; border-bottom: 1px solid var(--bg); display: flex; flex-direction: column; gap: 6px; }
-        .entry-row:last-child { border-bottom: none; }
+        .stats-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         
-        .foreign-text { font-size: 20px; line-height: 1.5; color: var(--primary); font-weight: 600; word-break: break-word; }
-        .translation-text { font-size: 15px; color: var(--text-sub); }
-
-        .input-group { margin-bottom: 15px; }
-        label { display: block; font-size: 11px; font-weight: 800; color: var(--text-sub); margin-bottom: 6px; text-transform: uppercase; }
-        input, select, textarea { 
-            width: 100%; padding: 16px; border-radius: 14px; border: 1.5px solid var(--bg);
-            background: var(--bg); color: var(--text-main); font-size: 16px; box-sizing: border-box; font-family: inherit;
+        .xp-bar-container {
+            width: 100%; height: 8px; background: rgba(0,0,0,0.05); border-radius: 10px; overflow: hidden;
+            position: relative;
         }
-        textarea { resize: none; height: 80px; }
-
-        .btn-main {
-            width: 100%; padding: 18px; border-radius: 16px; border: none;
-            background: var(--primary); color: white; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s;
+        .xp-bar-fill {
+            height: 100%; width: 30%; background: linear-gradient(90deg, var(--primary), var(--accent));
+            transition: width 0.5s ease;
         }
-        .btn-main:active { transform: scale(0.97); }
 
-        .nav-bar {
-            position: fixed; bottom: 0; width: 100%; height: 80px;
-            background: var(--surface); display: flex; justify-content: space-around;
-            align-items: center; border-top: 1px solid var(--shadow);
+        /* --- Language Tabs --- */
+        .lang-tabs {
+            display: flex; gap: 10px; padding: 10px 20px; overflow-x: auto; scrollbar-width: none;
         }
-        .nav-btn { background: none; border: none; color: var(--text-sub); font-size: 24px; cursor: pointer; text-align: center; }
-        .nav-btn span { display: block; font-size: 10px; font-weight: 800; margin-top: 4px; text-transform: uppercase; }
-        .nav-btn.active { color: var(--primary); }
+        .lang-tabs::-webkit-scrollbar { display: none; }
+        
+        .tab {
+            padding: 10px 22px; border-radius: 16px; background: var(--card-bg);
+            border: 2px solid transparent; white-space: nowrap; font-weight: 700; cursor: pointer;
+            box-shadow: var(--shadow); transition: 0.3s; color: var(--text-light);
+        }
+        .tab.active {
+            background: var(--primary); color: white; border-color: var(--secondary);
+            transform: translateY(-3px);
+        }
 
-        .topic-tag { font-size: 11px; color: var(--primary); font-weight: 800; background: var(--bg); padding: 4px 10px; border-radius: 6px; margin-bottom: 12px; display: inline-block; }
+        /* --- Visual Cards --- */
+        .container { max-width: 500px; margin: 0 auto; padding: 15px; }
+        
+        .main-card {
+            background: var(--card-bg); border-radius: 30px; padding: 25px;
+            box-shadow: var(--shadow); border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px); animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Interactive Inputs --- */
+        .field { margin-bottom: 20px; }
+        .field label { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; margin-left: 5px; }
+        
+        input, select, textarea {
+            width: 100%; padding: 16px; border-radius: 20px; border: 2px solid transparent;
+            background: rgba(0,0,0,0.03); color: var(--text); font-size: 16px; font-family: inherit;
+            margin-top: 8px; transition: 0.3s;
+        }
+        [data-theme="dark"] input { background: rgba(255,255,255,0.05); }
+        
+        input:focus, textarea:focus { border-color: var(--primary); outline: none; background: var(--card-bg); }
+
+        .btn-glow {
+            width: 100%; padding: 20px; border-radius: 22px; border: none;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; font-weight: 800; font-size: 16px; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3); transition: 0.3s;
+        }
+        .btn-glow:active { transform: scale(0.95); opacity: 0.9; }
+
+        /* --- Library Items --- */
+        .item-card {
+            background: var(--card-bg); border-radius: 24px; padding: 20px; margin-bottom: 12px;
+            box-shadow: var(--shadow); border-left: 6px solid var(--primary);
+        }
+        .item-topic { font-size: 10px; font-weight: 800; color: var(--text-light); text-transform: uppercase; margin-bottom: 5px; }
+        .item-target { font-size: 22px; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+        .item-trans { font-size: 15px; color: var(--text-light); }
+
+        /* --- Navigation --- */
+        .nav {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px; height: 75px; background: var(--card-bg);
+            border-radius: 25px; display: flex; justify-content: space-around; align-items: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.2);
+        }
+        .nav-link { color: var(--text-light); font-size: 22px; transition: 0.3s; position: relative; cursor: pointer; }
+        .nav-link.active { color: var(--primary); }
+        .nav-link.active::after {
+            content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            width: 5px; height: 5px; background: var(--primary); border-radius: 50%;
+        }
+
         .hidden { display: none; }
+        .pulse { animation: pulseAnim 0.3s ease; }
+        @keyframes pulseAnim { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     </style>
 </head>
-<body>
+<body data-theme="light">
 
-    <div class="sticky-header">
-        <div class="top-bar">
-            <h2 style="margin:0; font-size: 18px;">PolyglotFlow</h2>
-            <div id="sync-dot" style="font-size: 12px; color: #ccc;">●</div>
-            <div onclick="toggleTheme()" style="cursor:pointer; font-size: 20px;">🌓</div>
+    <div class="header">
+        <div class="stats-row">
+            <h2 style="margin:0; font-size: 18px; font-weight: 800;">PolyglotFlow</h2>
+            <div id="sync-status" style="font-size: 11px; font-weight: 800; color: var(--accent);"><i class="fas fa-circle-check"></i> SAVED</div>
+            <div onclick="toggleTheme()" style="cursor:pointer; font-size: 18px;"><i class="fas fa-moon"></i></div>
         </div>
-        <div class="lang-switcher">
-            <div class="mini-pill" onclick="selectLang('Thai')" data-lang="Thai">🇹🇭 Thai</div>
-            <div class="mini-pill" onclick="selectLang('Chinese')" data-lang="Chinese">🇨🇳 Chinese</div>
-            <div class="mini-pill" onclick="selectLang('Korean')" data-lang="Korean">🇰🇷 Korean</div>
+        <div style="display:flex; justify-content: space-between; font-size: 10px; font-weight: 800; color: var(--text-light); margin-bottom: 4px;">
+            <span>DAILY GOAL</span>
+            <span id="xp-text">3/10 Words</span>
+        </div>
+        <div class="xp-bar-container">
+            <div class="xp-bar-fill" id="xp-fill"></div>
         </div>
     </div>
 
+    <div class="lang-tabs">
+        <div class="tab active" onclick="selectLang('Thai')" data-lang="Thai">🇹🇭 Thai</div>
+        <div class="tab" onclick="selectLang('Chinese')" data-lang="Chinese">🇨🇳 Chinese</div>
+        <div class="tab" onclick="selectLang('Korean')" data-lang="Korean">🇰🇷 Korean</div>
+    </div>
+
     <div id="screen-input" class="screen container">
-        <div class="card">
-            <div class="input-group">
-                <label>Topic Context</label>
+        <div class="main-card">
+            <div class="field">
+                <label>Context / Topic</label>
                 <select id="topic-select" onchange="toggleTopicInput()"></select>
-                <input type="text" id="topic-new" placeholder="Create new topic..." style="margin-top:8px">
+                <input type="text" id="topic-new" placeholder="E.g. Restaurant, Travel..." style="margin-top:10px">
             </div>
-            <div class="input-group">
+            <div class="field">
                 <label id="target-label">Thai Sentence</label>
-                <textarea id="word-target" placeholder="Enter target language text..."></textarea>
+                <textarea id="word-target" placeholder="Write it here..."></textarea>
             </div>
-            <div class="input-group">
-                <label>Translation (Your Language)</label>
-                <textarea id="word-translation" placeholder="Enter the meaning..."></textarea>
+            <div class="field">
+                <label>Meaning</label>
+                <textarea id="word-translation" placeholder="What does it mean?"></textarea>
             </div>
-            <button class="btn-main" onclick="saveVocab()">Save Entry</button>
+            <button class="btn-glow" id="save-btn" onclick="saveVocab()">
+                <i class="fas fa-magic"></i> Add to Library
+            </button>
         </div>
     </div>
 
@@ -116,41 +182,41 @@
     </div>
 
     <div id="screen-quiz" class="screen hidden container">
-        <div class="card" id="quiz-content" style="text-align:center; min-height: 300px; display: flex; flex-direction: column; justify-content: center;">
-            </div>
+        <div class="main-card" id="quiz-content" style="text-align: center; min-height: 350px; display: flex; flex-direction: column; justify-content: center;">
+        </div>
     </div>
 
-    <nav class="nav-bar">
-        <button class="nav-btn active" id="nav-input" onclick="navTo('screen-input')">✍️<span>Add</span></button>
-        <button class="nav-btn" id="nav-list" onclick="navTo('screen-list')">📚<span>Library</span></button>
-        <button class="nav-btn" id="nav-quiz" onclick="navTo('screen-quiz')">⚡<span>Quiz</span></button>
+    <nav class="nav">
+        <div class="nav-link active" onclick="navTo('screen-input')"><i class="fas fa-plus-circle"></i></div>
+        <div class="nav-link" onclick="navTo('screen-list')"><i class="fas fa-book-open"></i></div>
+        <div class="nav-link" onclick="navTo('screen-quiz')"><i class="fas fa-bolt-lightning"></i></div>
     </nav>
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZdK3xJD4uSHxs6KKqNpx8XEj7fwNrodO3ldnrrdUzLv5tUosacAvmDRBq-u-tIaYk/exec";
     let currentLang = 'Thai';
     let currentScreen = 'screen-input';
+    let dailyCount = 0;
 
     window.onload = () => {
         selectLang('Thai');
-        if(localStorage.getItem('apex-theme') === 'dark') toggleTheme();
+        updateProgress();
     };
 
     function toggleTheme() {
-        const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('apex-theme', theme);
+        const body = document.body;
+        const isDark = body.getAttribute('data-theme') === 'dark';
+        body.setAttribute('data-theme', isDark ? 'light' : 'dark');
     }
 
     function selectLang(lang) {
         currentLang = lang;
-        document.querySelectorAll('.mini-pill').forEach(p => p.classList.toggle('active', p.dataset.lang === lang));
+        document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.lang === lang));
         document.getElementById('target-label').innerText = `${lang} Sentence`;
-        updateTopicDropdown();
         
+        updateTopicDropdown();
         if (currentScreen === 'screen-list') renderList();
         if (currentScreen === 'screen-quiz') setupQuiz();
-        
         syncFromCloud();
     }
 
@@ -158,8 +224,11 @@
         currentScreen = screenId;
         document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
         document.getElementById(screenId).classList.remove('hidden');
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('nav-' + screenId.split('-')[1]).classList.add('active');
+        
+        document.querySelectorAll('.nav-link').forEach((l, idx) => {
+            const screens = ['screen-input', 'screen-list', 'screen-quiz'];
+            l.classList.toggle('active', screens[idx] === screenId);
+        });
 
         if(screenId === 'screen-list') renderList();
         if(screenId === 'screen-quiz') setupQuiz();
@@ -170,7 +239,7 @@
     function updateTopicDropdown() {
         const data = getLocalData();
         const select = document.getElementById('topic-select');
-        select.innerHTML = '<option value="NEW">+ New Topic</option>';
+        select.innerHTML = '<option value="NEW">+ Create New Topic</option>';
         Object.keys(data).forEach(t => select.innerHTML += `<option value="${t}">${t}</option>`);
         toggleTopicInput();
     }
@@ -180,8 +249,8 @@
     }
 
     async function syncFromCloud() {
-        const dot = document.getElementById('sync-dot');
-        dot.style.color = "#F1C40F";
+        const label = document.getElementById('sync-status');
+        label.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SYNCING';
         try {
             const res = await fetch(SCRIPT_URL);
             const cloudData = await res.json();
@@ -193,24 +262,39 @@
                 }
             });
             localStorage.setItem('poly_' + currentLang, JSON.stringify(organized));
-            dot.style.color = "#2ECC71";
+            label.innerHTML = '<i class="fas fa-circle-check"></i> UPDATED';
             updateTopicDropdown();
             if (currentScreen === 'screen-list') renderList();
-        } catch (e) { dot.style.color = "#E74C3C"; }
+        } catch (e) { label.innerHTML = '<i class="fas fa-circle-xmark"></i> OFFLINE'; }
+    }
+
+    function updateProgress() {
+        const fill = document.getElementById('xp-fill');
+        const text = document.getElementById('xp-text');
+        const percentage = Math.min((dailyCount / 10) * 100, 100);
+        fill.style.width = percentage + '%';
+        text.innerText = `${dailyCount}/10 Words Today`;
     }
 
     async function saveVocab() {
-        const select = document.getElementById('topic-select');
-        const topic = select.value === "NEW" ? document.getElementById('topic-new').value.trim() : select.value;
+        const topic = document.getElementById('topic-select').value === "NEW" ? document.getElementById('topic-new').value.trim() : document.getElementById('topic-select').value;
         const target = document.getElementById('word-target').value.trim();
         const trans = document.getElementById('word-translation').value.trim();
 
         if(!topic || !target || !trans) return;
 
+        // Feedback
+        const btn = document.getElementById('save-btn');
+        btn.classList.add('pulse');
+        setTimeout(() => btn.classList.remove('pulse'), 300);
+
         const data = getLocalData();
         if(!data[topic]) data[topic] = [];
         data[topic].push({ target, trans });
         localStorage.setItem('poly_' + currentLang, JSON.stringify(data));
+
+        dailyCount++;
+        updateProgress();
 
         document.getElementById('word-target').value = '';
         document.getElementById('word-translation').value = '';
@@ -221,7 +305,7 @@
             body: JSON.stringify({ lang: currentLang, topic, target, trans })
         });
         
-        navTo('screen-list');
+        setTimeout(() => navTo('screen-list'), 500);
     }
 
     function renderList() {
@@ -229,59 +313,44 @@
         const container = document.getElementById('list-container');
         container.innerHTML = '';
         
-        const topics = Object.keys(data);
-        if(topics.length === 0) {
-            container.innerHTML = '<div class="card" style="text-align:center; color:var(--text-sub)">No data for this language yet.</div>';
-            return;
-        }
-
         for (let topic in data) {
-            let html = `<div class="card"><div class="topic-tag">${topic}</div>`;
             data[topic].forEach(item => {
-                html += `<div class="entry-row">
-                    <div class="foreign-text">${item.target}</div>
-                    <div class="translation-text">${item.trans}</div>
-                </div>`;
+                container.innerHTML += `
+                    <div class="item-card">
+                        <div class="item-topic">${topic}</div>
+                        <div class="item-target">${item.target}</div>
+                        <div class="item-trans">${item.trans}</div>
+                    </div>
+                `;
             });
-            container.innerHTML += html + `</div>`;
         }
     }
 
-    // --- FLIPPED QUIZ LOGIC ---
     function setupQuiz() {
         const data = getLocalData();
         let all = [];
         for(let t in data) data[t].forEach(w => all.push({...w, topic: t}));
         const area = document.getElementById('quiz-content');
-        if(!all.length) { area.innerHTML = "<h3>Add some words first!</h3>"; return; }
+        if(!all.length) { area.innerHTML = "<h3>Add words to unlock the quiz!</h3>"; return; }
 
         const q = all[Math.floor(Math.random() * all.length)];
-        
-        // Logic: Question is TRANSLATION, Answer is FOREIGN
         area.innerHTML = `
-            <div class="topic-tag" style="align-self:center">${q.topic}</div>
-            <div style="font-size:12px; color:var(--text-sub); margin-bottom:10px; font-weight:800; text-transform:uppercase">How do you say:</div>
-            <h1 style="margin:0 0 25px 0; font-size: 28px; line-height:1.2; color:var(--text-main)">${q.trans}</h1>
-            
-            <div class="input-group">
-                <textarea id="q-ans" placeholder="Type in ${currentLang}..." style="text-align:center; height: 100px; font-size: 18px;"></textarea>
-            </div>
-            
-            <button class="btn-main" onclick="checkQuiz('${q.target.replace(/'/g, "\\'")}')">Check Answer</button>
+            <div class="item-topic">${q.topic}</div>
+            <div style="font-size:12px; color:var(--primary); font-weight:800; margin-bottom:15px">HOW DO YOU SAY...</div>
+            <div style="font-size:32px; font-weight:800; margin-bottom:30px;">${q.trans}</div>
+            <textarea id="q-ans" placeholder="Type in ${currentLang}..." style="text-align:center; height:120px; font-size:18px;"></textarea>
+            <button class="btn-glow" style="margin-top:20px" onclick="checkQuiz('${q.target.replace(/'/g, "\\'")}')">Check Answer</button>
         `;
-        
-        // Auto-focus the input for faster flow
         setTimeout(() => document.getElementById('q-ans').focus(), 100);
     }
 
     function checkQuiz(correct) {
         const userAns = document.getElementById('q-ans').value.trim();
-        
         if (userAns.toLowerCase() === correct.toLowerCase()) {
-            alert("✨ Perfect! \n\n" + correct);
+            alert("✨ Awesome! You got it right.");
             setupQuiz();
         } else {
-            alert("Not quite!\n\nExpected: " + correct + "\nTyped: " + userAns);
+            alert("Not quite!\n\nThe correct way is:\n" + correct);
         }
     }
 </script>
