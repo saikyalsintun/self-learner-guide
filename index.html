@@ -5,142 +5,131 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#6C5CE7">
-    <title>Polyglot Flow</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+JP&family=Noto+Sans+KR&family=Noto+Sans+Thai&display=swap" rel="stylesheet">
+    <title>PolyglotFlow Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+KR&family=Noto+Sans+Thai&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #F8FAFC; --surface: #FFFFFF; --text-main: #1E293B; --text-sub: #64748B;
-            --primary: #6C5CE7; --secondary: #00CEC9; --accent: #FF7675; --shadow: rgba(108, 92, 231, 0.1);
+            --bg: #F1F5F9; --surface: #FFFFFF; --text-main: #1E293B; --text-sub: #64748B;
+            --primary: #6C5CE7; --secondary: #00CEC9; --shadow: rgba(108, 92, 231, 0.08);
         }
         [data-theme="dark"] {
-            --bg: #0F172A; --surface: #1E293B; --text-main: #F1F5F9; --text-sub: #94A3B8;
+            --bg: #0F172A; --surface: #1B263B; --text-main: #F1F5F9; --text-sub: #94A3B8;
             --primary: #A29BFE; --shadow: rgba(0, 0, 0, 0.3);
         }
 
         body { 
             font-family: 'Inter', 'Noto Sans Thai', 'Noto Sans KR', sans-serif; 
             margin: 0; background: var(--bg); color: var(--text-main); 
-            transition: 0.3s; padding-bottom: 90px; overflow-x: hidden;
+            transition: 0.3s; padding-bottom: 100px;
         }
 
-        /* Top Bar */
-        .top-bar {
-            padding: 15px 20px; background: var(--surface);
-            display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--shadow);
+        .sticky-header {
+            position: sticky; top: 0; z-index: 1000;
+            background: var(--surface); border-bottom: 1px solid var(--shadow);
         }
 
-        /* Language Switcher Pills */
+        .top-bar { padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+
         .lang-switcher {
-            display: flex; gap: 8px; padding: 10px; overflow-x: auto;
-            background: var(--surface); scrollbar-width: none;
+            display: flex; gap: 8px; padding: 10px 15px; overflow-x: auto;
+            scrollbar-width: none; border-top: 1px solid rgba(0,0,0,0.05);
         }
-        .lang-switcher::-webkit-scrollbar { display: none; }
         .mini-pill {
-            padding: 8px 16px; border-radius: 12px; background: var(--bg);
-            border: 2px solid transparent; white-space: nowrap; font-weight: 600; cursor: pointer;
+            padding: 8px 16px; border-radius: 20px; background: var(--bg);
+            border: 2px solid transparent; white-space: nowrap; font-size: 13px; font-weight: 700; cursor: pointer;
+            transition: 0.2s;
         }
-        .mini-pill.active { border-color: var(--primary); color: var(--primary); background: var(--surface); }
+        .mini-pill.active { border-color: var(--primary); color: var(--primary); background: var(--surface); transform: scale(1.05); }
 
-        /* Modern Cards */
-        .card { 
-            background: var(--surface); margin: 15px; padding: 20px; 
-            border-radius: 20px; box-shadow: 0 4px 15px var(--shadow);
-        }
+        .container { max-width: 600px; margin: 0 auto; padding: 10px; }
+        .card { background: var(--surface); margin-bottom: 12px; padding: 20px; border-radius: 18px; box-shadow: 0 4px 12px var(--shadow); }
 
-        /* Typography for Foreign Scripts */
-        .foreign-text { font-size: 24px; font-weight: 600; color: var(--primary); }
+        .entry-row { padding: 15px 0; border-bottom: 1px solid var(--bg); display: flex; flex-direction: column; gap: 6px; }
+        .entry-row:last-child { border-bottom: none; }
+        
+        .foreign-text { font-size: 20px; line-height: 1.5; color: var(--primary); font-weight: 600; word-break: break-word; }
+        .translation-text { font-size: 15px; color: var(--text-sub); }
 
-        /* Form Styling */
         .input-group { margin-bottom: 15px; }
-        label { display: block; font-size: 12px; font-weight: 700; color: var(--text-sub); margin-bottom: 6px; text-transform: uppercase; }
-        input, select { 
-            width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #E2E8F0;
-            background: var(--bg); color: var(--text-main); font-size: 16px; box-sizing: border-box;
+        label { display: block; font-size: 11px; font-weight: 800; color: var(--text-sub); margin-bottom: 6px; text-transform: uppercase; }
+        input, select, textarea { 
+            width: 100%; padding: 14px; border-radius: 12px; border: 1.5px solid var(--bg);
+            background: var(--bg); color: var(--text-main); font-size: 16px; box-sizing: border-box; font-family: inherit;
         }
+        textarea { resize: none; height: 70px; }
 
         .btn-main {
             width: 100%; padding: 16px; border-radius: 14px; border: none;
-            background: var(--primary); color: white; font-weight: 700; font-size: 16px;
-            cursor: pointer; transition: 0.2s;
+            background: var(--primary); color: white; font-weight: 700; font-size: 16px; cursor: pointer;
         }
-        .btn-main:active { transform: scale(0.98); }
 
-        /* Quiz UI */
-        .quiz-card { text-align: center; padding: 40px 20px; }
-        .quiz-hint { font-size: 14px; color: var(--text-sub); margin-bottom: 10px; }
-
-        /* Bottom Nav */
         .nav-bar {
             position: fixed; bottom: 0; width: 100%; height: 75px;
             background: var(--surface); display: flex; justify-content: space-around;
-            align-items: center; border-top: 1px solid var(--shadow); padding-bottom: env(safe-area-inset-bottom);
+            align-items: center; border-top: 1px solid var(--shadow);
         }
-        .nav-btn { background: none; border: none; color: var(--text-sub); font-size: 20px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .nav-btn { background: none; border: none; color: var(--text-sub); font-size: 22px; cursor: pointer; text-align: center; }
+        .nav-btn span { display: block; font-size: 10px; font-weight: 700; margin-top: 4px; }
         .nav-btn.active { color: var(--primary); }
-        .nav-btn span { font-size: 10px; font-weight: 700; }
 
+        .topic-tag { font-size: 11px; color: var(--primary); font-weight: 800; background: var(--bg); padding: 4px 10px; border-radius: 6px; margin-bottom: 10px; display: inline-block; }
         .hidden { display: none; }
-        .sync-indicator { font-size: 11px; color: var(--secondary); font-weight: 700; }
     </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <h2 style="margin:0; font-size: 18px;">PolyglotFlow</h2>
-        <div id="sync-status" class="sync-indicator">● Online</div>
-        <div onclick="toggleTheme()" style="cursor:pointer">🌓</div>
+    <div class="sticky-header">
+        <div class="top-bar">
+            <h2 style="margin:0; font-size: 18px;">PolyglotFlow</h2>
+            <div id="sync-dot" style="font-size: 12px;">●</div>
+            <div onclick="toggleTheme()" style="cursor:pointer; font-size: 20px;">🌓</div>
+        </div>
+        <div class="lang-switcher">
+            <div class="mini-pill" onclick="selectLang('Thai')" data-lang="Thai">🇹🇭 Thai</div>
+            <div class="mini-pill" onclick="selectLang('Chinese')" data-lang="Chinese">🇨🇳 Chinese</div>
+            <div class="mini-pill" onclick="selectLang('Korean')" data-lang="Korean">🇰🇷 Korean</div>
+        </div>
     </div>
 
-    <div class="lang-switcher" id="lang-bar">
-        <div class="mini-pill" onclick="selectLang('Thai')" data-lang="Thai">🇹🇭 Thai</div>
-        <div class="mini-pill" onclick="selectLang('Chinese')" data-lang="Chinese">🇨🇳 Chinese</div>
-        <div class="mini-pill" onclick="selectLang('Korean')" data-lang="Korean">🇰🇷 Korean</div>
-    </div>
-
-    <div id="screen-input" class="screen">
+    <div id="screen-input" class="screen container">
         <div class="card">
             <div class="input-group">
                 <label>Topic</label>
                 <select id="topic-select" onchange="toggleTopicInput()"></select>
-                <input type="text" id="topic-new" placeholder="Topic Name..." style="margin-top:8px">
+                <input type="text" id="topic-new" placeholder="Create new topic..." style="margin-top:8px">
             </div>
             <div class="input-group">
-                <label id="target-label">Foreign Word</label>
-                <input type="text" id="word-target" placeholder="...">
+                <label id="target-label">Thai Sentence</label>
+                <textarea id="word-target" placeholder="Start typing..."></textarea>
             </div>
             <div class="input-group">
                 <label>Translation</label>
-                <input type="text" id="word-translation" placeholder="...">
+                <textarea id="word-translation" placeholder="What does it mean?"></textarea>
             </div>
-            <button class="btn-main" onclick="saveVocab()">Add to My Library</button>
+            <button class="btn-main" onclick="saveVocab()">Save to Cloud</button>
         </div>
     </div>
 
-    <div id="screen-list" class="screen hidden">
-        <div style="padding: 0 15px">
-            <button onclick="syncFromCloud(true)" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--primary); background:none; color:var(--primary); font-weight:600; margin-top:15px">Sync Cloud Data</button>
-        </div>
+    <div id="screen-list" class="screen hidden container">
         <div id="list-container"></div>
     </div>
 
-    <div id="screen-quiz" class="screen hidden">
-        <div class="card quiz-card">
-            <div id="quiz-content"></div>
+    <div id="screen-quiz" class="screen hidden container">
+        <div class="card" id="quiz-content" style="text-align:center; min-height: 250px; display: flex; flex-direction: column; justify-content: center;">
         </div>
     </div>
 
     <nav class="nav-bar">
-        <button class="nav-btn active" onclick="navTo('screen-input')">✍️<span>Add</span></button>
-        <button class="nav-btn" onclick="navTo('screen-list'); renderList();">📚<span>Library</span></button>
-        <button class="nav-btn" onclick="navTo('screen-quiz'); setupQuiz();">⚡<span>Quiz</span></button>
+        <button class="nav-btn active" id="nav-input" onclick="navTo('screen-input')">✍️<span>Add</span></button>
+        <button class="nav-btn" id="nav-list" onclick="navTo('screen-list')">📚<span>Library</span></button>
+        <button class="nav-btn" id="nav-quiz" onclick="navTo('screen-quiz')">⚡<span>Quiz</span></button>
     </nav>
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZdK3xJD4uSHxs6KKqNpx8XEj7fwNrodO3ldnrrdUzLv5tUosacAvmDRBq-u-tIaYk/exec";
-    let currentLang = 'Thai'; // Default
+    let currentLang = 'Thai';
+    let currentScreen = 'screen-input';
 
-    // Initialization
     window.onload = () => {
         selectLang('Thai');
         if(localStorage.getItem('apex-theme') === 'dark') toggleTheme();
@@ -152,24 +141,37 @@
         localStorage.setItem('apex-theme', theme);
     }
 
+    // REACTIVE SWITCHING LOGIC
     function selectLang(lang) {
         currentLang = lang;
-        document.querySelectorAll('.mini-pill').forEach(p => {
-            p.classList.toggle('active', p.dataset.lang === lang);
-        });
-        document.getElementById('target-label').innerText = `${lang} Word`;
+        
+        // Update UI Pills
+        document.querySelectorAll('.mini-pill').forEach(p => p.classList.toggle('active', p.dataset.lang === lang));
+        document.getElementById('target-label').innerText = `${lang} Sentence`;
+        
+        // Update Local State
         updateTopicDropdown();
-        syncFromCloud(false);
+        
+        // IMMEDIATELY REFRESH VIEW based on where you are
+        if (currentScreen === 'screen-list') {
+            renderList();
+        } else if (currentScreen === 'screen-quiz') {
+            setupQuiz();
+        }
+        
+        syncFromCloud();
     }
 
     function navTo(screenId) {
+        currentScreen = screenId;
         document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
         document.getElementById(screenId).classList.remove('hidden');
-        document.querySelectorAll('.nav-btn').forEach(b => {
-            const btnText = b.querySelector('span').innerText.toLowerCase();
-            const screenName = screenId.split('-')[1];
-            b.classList.toggle('active', btnText === screenName || (btnText === 'add' && screenName === 'input'));
-        });
+        
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('nav-' + screenId.split('-')[1]).classList.add('active');
+
+        if(screenId === 'screen-list') renderList();
+        if(screenId === 'screen-quiz') setupQuiz();
     }
 
     function getLocalData() { return JSON.parse(localStorage.getItem('poly_' + currentLang)) || {}; }
@@ -186,9 +188,9 @@
         document.getElementById('topic-new').style.display = document.getElementById('topic-select').value === "NEW" ? 'block' : 'none';
     }
 
-    async function syncFromCloud(feedback) {
-        const status = document.getElementById('sync-status');
-        status.innerText = "⏳ Syncing...";
+    async function syncFromCloud() {
+        const dot = document.getElementById('sync-dot');
+        dot.style.color = "#F1C40F";
         try {
             const res = await fetch(SCRIPT_URL);
             const cloudData = await res.json();
@@ -200,10 +202,11 @@
                 }
             });
             localStorage.setItem('poly_' + currentLang, JSON.stringify(organized));
-            status.innerText = "✅ Synced";
-            if(feedback) alert("Library Updated");
+            dot.style.color = "#2ECC71";
             updateTopicDropdown();
-        } catch (e) { status.innerText = "❌ Offline"; }
+            // Refresh view again after cloud data arrives
+            if (currentScreen === 'screen-list') renderList();
+        } catch (e) { dot.style.color = "#E74C3C"; }
     }
 
     async function saveVocab() {
@@ -219,7 +222,6 @@
         data[topic].push({ target, trans });
         localStorage.setItem('poly_' + currentLang, JSON.stringify(data));
 
-        // UI Reset
         document.getElementById('word-target').value = '';
         document.getElementById('word-translation').value = '';
         
@@ -229,19 +231,26 @@
             body: JSON.stringify({ lang: currentLang, topic, target, trans })
         });
         
-        alert("Saved to " + currentLang);
+        navTo('screen-list');
     }
 
     function renderList() {
         const data = getLocalData();
         const container = document.getElementById('list-container');
         container.innerHTML = '';
+        
+        const topics = Object.keys(data);
+        if(topics.length === 0) {
+            container.innerHTML = '<div class="card" style="text-align:center; color:var(--text-sub)">No data for this language yet.</div>';
+            return;
+        }
+
         for (let topic in data) {
-            let html = `<div class="card"><div class="quiz-hint" style="text-align:left">${topic}</div>`;
+            let html = `<div class="card"><div class="topic-tag">${topic}</div>`;
             data[topic].forEach(item => {
-                html += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--bg)">
-                    <span class="foreign-text" style="font-size:18px">${item.target}</span>
-                    <span style="color:var(--text-sub)">${item.trans}</span>
+                html += `<div class="entry-row">
+                    <div class="foreign-text">${item.target}</div>
+                    <div class="translation-text">${item.trans}</div>
                 </div>`;
             });
             container.innerHTML += html + `</div>`;
@@ -253,26 +262,22 @@
         let all = [];
         for(let t in data) data[t].forEach(w => all.push({...w, topic: t}));
         const area = document.getElementById('quiz-content');
-        if(!all.length) { area.innerHTML = "<h3>Add words to start!</h3>"; return; }
+        if(!all.length) { area.innerHTML = "<h3>Add sentences to start!</h3>"; return; }
 
         const q = all[Math.floor(Math.random() * all.length)];
         area.innerHTML = `
-            <div class="quiz-hint">${q.topic}</div>
-            <div class="quiz-hint">TRANSLATION:</div>
-            <h1 style="margin:10px 0">${q.trans}</h1>
-            <input type="text" id="q-ans" placeholder="Type in ${currentLang}..." style="text-align:center; margin-bottom:20px" autocomplete="off">
-            <button class="btn-main" onclick="checkQuiz('${q.target.trim()}')">Check Answer</button>
+            <div class="topic-tag" style="align-self:center">${q.topic}</div>
+            <div style="font-size:12px; color:var(--text-sub); margin-bottom:10px">TRANSLATE:</div>
+            <div class="foreign-text" style="margin-bottom:20px; font-size: 24px;">${q.target}</div>
+            <input type="text" id="q-ans" placeholder="..." style="text-align:center; margin-bottom:15px">
+            <button class="btn-main" onclick="checkQuiz('${q.trans.trim()}')">Check Answer</button>
         `;
     }
 
     function checkQuiz(correct) {
         const ans = document.getElementById('q-ans').value.trim();
-        if(ans.toLowerCase() === correct.toLowerCase()) {
-            alert("Correct! 🎉");
-            setupQuiz();
-        } else {
-            alert("Oops! The correct word is: " + correct);
-        }
+        alert(`Correct: ${correct}\nYours: ${ans}`);
+        setupQuiz();
     }
 </script>
 </body>
