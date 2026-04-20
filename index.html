@@ -12,7 +12,6 @@
             --primary: #6C5CE7; --accent: #00CEC9; --bg: #0C0C1E;
             --card-bg: rgba(30, 30, 50, 0.9); --text: #F1F2F6; --text-light: #A4A4B5;
             --font-main: 'Plus Jakarta Sans', sans-serif;
-            /* Thai specific font with loops for readability */
             --font-thai: 'Sarabun', sans-serif; 
         }
 
@@ -24,7 +23,6 @@
             line-height: 1.6; padding-bottom: 120px; overflow-x: hidden;
         }
 
-        /* Applying Thai font to specific content areas */
         .vocab-word, .s-target, .paragraph-text, .m-btn {
             font-family: var(--font-thai), var(--font-main);
         }
@@ -135,9 +133,16 @@
     let currentLang = 'Thai';
     let currentView = 'study';
     let selectedLeft = null;
-    let gamePool = []; let wordsCleared = 0; let totalWords = 0;
+    let gamePool = []; 
+    let wordsCleared = 0; 
+    let totalWords = 0;
 
-    const fileMap = { 'Thai': 'Thai.json', 'Chinese': 'chinese.json', 'Korea': 'Korea.json' };
+    // Updated to match your lowercase filenames exactly
+    const fileMap = { 
+        'Thai': 'thai.json', 
+        'Chinese': 'chinese.json', 
+        'Korea': 'korea.json' 
+    };
 
     async function switchLang(lang) {
         currentLang = lang;
@@ -149,45 +154,63 @@
         currentView = view;
         document.getElementById('view-study').classList.toggle('hidden', view !== 'study');
         document.getElementById('view-game').classList.toggle('hidden', view !== 'game');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.innerText.toLowerCase().includes(view)));
-        if(view === 'game') resetGame(); else fetchData();
+        
+        document.querySelectorAll('.nav-item').forEach(n => {
+            const label = n.querySelector('span').innerText.toLowerCase();
+            n.classList.toggle('active', (view === 'study' && label === 'learn') || (view === 'game' && label === 'match'));
+        });
+
+        if(view === 'game') resetGame(); else renderStudy();
     }
 
     async function fetchData() {
         try {
             const response = await fetch(fileMap[currentLang]);
+            if (!response.ok) throw new Error(`Could not find ${fileMap[currentLang]}`);
             const data = await response.json();
             rawData = Array.isArray(data) ? data : [data];
-            populateChapters();
             document.getElementById('status').innerText = "System Live";
-        } catch (e) { document.getElementById('status').innerText = "File Error"; }
+            populateChapters();
+        } catch (e) { 
+            console.error(e);
+            document.getElementById('status').innerText = "File Error"; 
+        }
     }
 
     function populateChapters() {
         const studySelect = document.getElementById('study-chapter');
         const gameSelect = document.getElementById('game-chapter');
-        const options = rawData.map((ch, i) => `<option value="${i}">${ch.Chapter_name || 'Chapter ' + (i+1)}</option>`).join('');
+        if (!rawData) return;
+
+        const options = rawData.map((ch, i) => 
+            `<option value="${i}">${ch.Chapter_name || 'Chapter ' + (i+1)}</option>`
+        ).join('');
+        
         studySelect.innerHTML = options;
         gameSelect.innerHTML = options;
+        
         if(currentView === 'study') renderStudy();
     }
 
     function renderStudy() {
-        const index = document.getElementById('study-chapter').value;
+        const index = document.getElementById('study-chapter').value || 0;
         const mode = document.getElementById('study-mode').value;
         const display = document.getElementById('study-display');
+        
+        if(!rawData || !rawData[index]) return;
         const ch = rawData[index];
+        
         display.innerHTML = `<span style="font-size:10px; color:var(--primary); font-weight:800; letter-spacing:1px;">${ch.Chapter_name}</span><div style="margin-top:20px;"></div>`;
 
         if (mode === 'vocab') {
             ch.Vocabulary_List.split(',').forEach(v => {
                 const p = v.split('=').map(s => s.trim());
-                if(p.length === 2) display.innerHTML += `<div class="vocab-row"><span class="vocab-word">${p[0]}</span><span class="vocab-mean">${p[1]}</span></div>`;
+                if(p.length >= 2) display.innerHTML += `<div class="vocab-row"><span class="vocab-word">${p[0]}</span><span class="vocab-mean">${p[1]}</span></div>`;
             });
         } else if (mode === 'sentences') {
             ch.Sentences.split(';').forEach(s => {
                 const p = s.split(':').map(i => i.trim());
-                if(p.length === 2) display.innerHTML += `<div class="sentence-box"><div class="s-target">${p[0]}</div><div class="s-trans">${p[1]}</div></div>`;
+                if(p.length >= 2) display.innerHTML += `<div class="sentence-box"><div class="s-target">${p[0]}</div><div class="s-trans">${p[1]}</div></div>`;
             });
         } else if (mode === 'paragraph') {
             display.innerHTML += `<div class="paragraph-text">${ch.Paragraph}</div>`;
@@ -196,13 +219,15 @@
 
     function resetGame() {
         if(!rawData) return;
-        const index = document.getElementById('game-chapter').value;
+        const index = document.getElementById('game-chapter').value || 0;
         const ch = rawData[index];
         gamePool = ch.Vocabulary_List.split(',').map(v => {
             const p = v.split('=').map(s => s.trim());
             return { t: p[0], e: p[1] };
         }).filter(x => x.t && x.e);
-        totalWords = gamePool.length; wordsCleared = 0;
+        
+        totalWords = gamePool.length; 
+        wordsCleared = 0;
         renderGameRound();
     }
 
@@ -215,9 +240,11 @@
         const currentRound = gamePool.slice(0, 5);
         const leftSide = [...currentRound].sort(() => 0.5 - Math.random());
         const rightSide = [...currentRound].sort(() => 0.5 - Math.random());
+        
         display.innerHTML = `<div class="progress-text">Progress: ${wordsCleared} / ${totalWords} Words</div><div class="grid" id="g"></div>`;
         const g = document.getElementById('g');
-        currentRound.forEach((_, i) => {
+        
+        leftSide.forEach((item, i) => {
             g.innerHTML += `<div class="m-btn" data-v="${leftSide[i].t}" onclick="match(this, 'L')">${leftSide[i].e}</div>`;
             g.innerHTML += `<div class="m-btn" data-v="${rightSide[i].t}" onclick="match(this, 'R')">${rightSide[i].t}</div>`;
         });
@@ -225,17 +252,22 @@
 
     function match(btn, side) {
         if(btn.classList.contains('matched')) return;
+        
         if(side === 'L') {
             document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('selected'));
-            selectedLeft = btn; btn.classList.add('selected');
+            selectedLeft = btn; 
+            btn.classList.add('selected');
         } else {
             if(!selectedLeft) return;
             if(selectedLeft.dataset.v === btn.dataset.v) {
-                selectedLeft.classList.add('matched'); btn.classList.add('matched');
+                selectedLeft.classList.add('matched'); 
+                btn.classList.add('matched');
                 selectedLeft = null;
+                
                 if(document.querySelectorAll('.m-btn:not(.matched)').length === 0) {
                     wordsCleared += Math.min(5, gamePool.length);
-                    gamePool = gamePool.slice(5); setTimeout(renderGameRound, 600);
+                    gamePool = gamePool.slice(5); 
+                    setTimeout(renderGameRound, 600);
                 }
             } else {
                 btn.style.borderColor = "#ff7675";
