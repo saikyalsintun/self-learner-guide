@@ -121,7 +121,6 @@
     let wordsCleared = 0; 
     let totalWords = 0;
 
-    // Matches your GitHub filenames exactly
     const fileMap = { 
         'Thai': 'Thai.json', 
         'Chinese': 'chinese.json', 
@@ -149,12 +148,12 @@
 
     async function fetchData() {
         try {
-            // Using relative path for GitHub Pages
-            const response = await fetch(`./${fileMap[currentLang]}`);
+            // Added cache-busting (?v=...) to force GitHub to serve the absolute newest file
+            const response = await fetch(`./${fileMap[currentLang]}?v=${new Date().getTime()}`);
             if (!response.ok) throw new Error("Load failed");
             const data = await response.json();
             
-            // Your JSON structure is an Array [] as per your screenshot
+            // Ensures the data is always handled as an Array
             rawData = Array.isArray(data) ? data : [data];
             document.getElementById('status').innerText = "System Live";
             populateChapters();
@@ -167,40 +166,46 @@
     function populateChapters() {
         const studySelect = document.getElementById('study-chapter');
         const gameSelect = document.getElementById('game-chapter');
-        if (!rawData) return;
+        if (!rawData || rawData.length === 0) return;
 
         const options = rawData.map((ch, i) => 
-            `<option value="${i}">${ch.Chapter_name}</option>`
+            `<option value="${i}">${ch.Chapter_name || 'Chapter ' + (i+1)}</option>`
         ).join('');
         
         studySelect.innerHTML = options;
         gameSelect.innerHTML = options;
         
-        if(currentView === 'study') renderStudy();
+        renderStudy();
     }
 
     function renderStudy() {
-        const index = document.getElementById('study-chapter').value || 0;
+        const studySelect = document.getElementById('study-chapter');
+        const index = studySelect.value || 0;
         const mode = document.getElementById('study-mode').value;
         const display = document.getElementById('study-display');
         
-        if(!rawData || !rawData[index]) return;
+        if(!rawData || !rawData[index]) {
+            display.innerHTML = "<p style='text-align:center; color:var(--text-light);'>Select a chapter to begin</p>";
+            return;
+        }
+
         const ch = rawData[index];
-        
         display.innerHTML = `<span style="font-size:10px; color:var(--primary); font-weight:800; letter-spacing:1px;">${ch.Chapter_name}</span><div style="margin-top:20px;"></div>`;
 
         if (mode === 'vocab') {
-            ch.Vocabulary_List.split(',').forEach(v => {
+            const list = ch.Vocabulary_List || "";
+            list.split(',').forEach(v => {
                 const p = v.split('=').map(s => s.trim());
                 if(p.length >= 2) display.innerHTML += `<div class="vocab-row"><span class="vocab-word">${p[0]}</span><span class="vocab-mean">${p[1]}</span></div>`;
             });
         } else if (mode === 'sentences') {
-            ch.Sentences.split(';').forEach(s => {
+            const sentences = ch.Sentences || "";
+            sentences.split(';').forEach(s => {
                 const p = s.split(':').map(i => i.trim());
                 if(p.length >= 2) display.innerHTML += `<div class="sentence-box"><div class="s-target">${p[0]}</div><div class="s-trans">${p[1]}</div></div>`;
             });
         } else if (mode === 'paragraph') {
-            display.innerHTML += `<div class="paragraph-text">${ch.Paragraph}</div>`;
+            display.innerHTML += `<div class="paragraph-text">${ch.Paragraph || "No text available for this chapter."}</div>`;
         }
     }
 
@@ -208,7 +213,10 @@
         if(!rawData) return;
         const index = document.getElementById('game-chapter').value || 0;
         const ch = rawData[index];
-        gamePool = ch.Vocabulary_List.split(',').map(v => {
+        if(!ch) return;
+
+        const list = ch.Vocabulary_List || "";
+        gamePool = list.split(',').map(v => {
             const p = v.split('=').map(s => s.trim());
             return { t: p[0], e: p[1] };
         }).filter(x => x.t && x.e);
