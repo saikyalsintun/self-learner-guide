@@ -3,199 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Polyglot Flow | Multi-JSON Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Noto+Sans+KR:wght@500;700&family=Noto+Sans+Thai:wght@500;700&display=swap" rel="stylesheet">
+    <title>Polyglot Flow | Advanced Learning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Noto+Sans+Thai:wght@300;500;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
             --primary: #6C5CE7; --secondary: #A29BFE; --accent: #00CEC9; --bg: #0C0C1E;
             --card-bg: rgba(30, 30, 50, 0.9); --text: #F1F2F6; --text-light: #A4A4B5;
-            --glass: rgba(20, 20, 40, 0.7); --shadow: 0 20px 40px rgba(0,0,0,0.3);
-        }
-        [data-theme="light"] {
-            --bg: #F8F9FE; --card-bg: rgba(255, 255, 255, 0.9); --text: #2D3436;
-            --text-light: #636E72; --glass: rgba(255, 255, 255, 0.7); --shadow: 0 20px 40px rgba(108, 92, 231, 0.08);
+            --glass: rgba(255, 255, 255, 0.03); --font-main: 'Plus Jakarta Sans', 'Noto Sans Thai', sans-serif;
+            --font-display: 'Montserrat', sans-serif;
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', 'Noto Sans Thai', 'Noto Sans KR', sans-serif;
-            margin: 0; background: var(--bg); color: var(--text); padding-bottom: 120px;
-            transition: background 0.3s;
+            font-family: var(--font-main);
+            margin: 0; background: var(--bg); color: var(--text); 
+            line-height: 1.6; padding-bottom: 100px;
         }
 
-        .header { padding: 20px; background: var(--glass); backdrop-filter: blur(15px); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .stats-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        
-        .lang-tabs { display: flex; gap: 10px; padding: 10px 20px; overflow-x: auto; scrollbar-width: none; }
-        .tab { padding: 10px 22px; border-radius: 16px; background: var(--card-bg); font-weight: 700; cursor: pointer; box-shadow: var(--shadow); transition: 0.3s; color: var(--text-light); white-space: nowrap; border: 2px solid transparent; }
-        .tab.active { background: var(--primary); color: white; border-color: var(--secondary); transform: translateY(-3px); }
+        /* Typography Override */
+        h1, h2, .chapter-title { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; }
 
-        .container { max-width: 500px; margin: 0 auto; padding: 15px; }
-        .main-card { background: var(--card-bg); border-radius: 30px; padding: 25px; box-shadow: var(--shadow); backdrop-filter: blur(10px); margin-bottom: 20px; }
+        .header { padding: 30px 20px; text-align: center; background: linear-gradient(to bottom, rgba(108, 92, 231, 0.1), transparent); }
+        
+        /* Navigation Tabs */
+        .tabs-container { display: flex; gap: 10px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; margin-bottom: 20px; }
+        .tab { 
+            padding: 12px 24px; border-radius: 12px; background: var(--card-bg); 
+            font-weight: 700; cursor: pointer; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: var(--text-light); white-space: nowrap; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .tab.active { background: var(--primary); color: white; transform: scale(1.05); box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3); }
 
-        .field { margin-bottom: 20px; }
-        .field label { font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-left: 5px; }
-        textarea, select, input { width: 100%; padding: 16px; border-radius: 20px; border: none; background: rgba(255,255,255,0.05); color: var(--text); margin-top: 8px; font-family: inherit; box-sizing: border-box; }
-        
-        .btn-glow { width: 100%; padding: 20px; border-radius: 22px; border: none; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; font-weight: 800; box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3); cursor: pointer; }
-        
-        .item-card { background: var(--card-bg); border-radius: 24px; padding: 20px; margin-bottom: 12px; box-shadow: var(--shadow); border-left: 6px solid var(--primary); }
-        .item-target { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-        
-        .reading-section { background: linear-gradient(145deg, var(--primary), var(--secondary)); color: white; border-radius: 24px; padding: 25px; margin-bottom: 25px; line-height: 1.8; }
+        .container { max-width: 600px; margin: 0 auto; padding: 0 20px; }
 
-        .nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; height: 75px; background: var(--card-bg); border-radius: 25px; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
-        .nav-link { color: var(--text-light); font-size: 22px; cursor: pointer; transition: 0.3s; }
-        .nav-link.active { color: var(--primary); transform: translateY(-5px); }
-        
+        /* Menu Selectors */
+        .selector-group { display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; }
+        select { 
+            appearance: none; background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1);
+            color: white; padding: 15px; border-radius: 15px; font-family: var(--font-main); font-weight: 600;
+            cursor: pointer; transition: 0.3s;
+        }
+        select:focus { outline: none; border-color: var(--primary); }
+
+        /* Content Display Cards */
+        .content-card { background: var(--card-bg); border-radius: 24px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); margin-top: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .vocab-item { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
+        .vocab-item:hover { transform: translateX(10px); }
+        .vocab-word { font-size: 20px; font-weight: 700; color: var(--accent); }
+        .vocab-meaning { font-size: 14px; color: var(--text-light); }
+
+        .sentence-item { margin-bottom: 20px; padding-left: 15px; border-left: 3px solid var(--primary); }
+        .sentence-thai { font-size: 18px; margin-bottom: 5px; }
+        .sentence-eng { font-size: 14px; color: var(--text-light); font-style: italic; }
+
+        .paragraph-text { font-size: 17px; line-height: 2.2; text-align: justify; white-space: pre-line; }
+
+        /* Matching Game */
+        .matching-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .match-btn { 
+            padding: 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);
+            background: var(--card-bg); color: var(--text); cursor: pointer; transition: 0.2s;
+            min-height: 70px; display: flex; align-items: center; justify-content: center; text-align: center;
+        }
+        .match-btn.selected { background: var(--primary); border-color: var(--secondary); transform: scale(0.98); }
+        .match-btn.matched { visibility: hidden; opacity: 0; pointer-events: none; }
+        .match-btn.error { background: #ff7675; }
+
+        .nav-bar { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 220px; background: rgba(30, 30, 50, 0.8); backdrop-filter: blur(20px); border-radius: 50px; display: flex; justify-content: space-around; padding: 15px; border: 1px solid rgba(255,255,255,0.1); }
+        .nav-btn { color: var(--text-light); font-size: 20px; cursor: pointer; transition: 0.3s; }
+        .nav-btn.active { color: var(--primary); }
+
         .hidden { display: none; }
-        
-        /* Matching Grid */
-        .matching-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .match-btn { padding: 15px; border-radius: 15px; background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1); color: var(--text); cursor: pointer; font-size: 14px; min-height: 60px; display: flex; align-items: center; justify-content: center; text-align: center; }
-        .match-btn.selected { background: var(--primary); border-color: var(--secondary); }
-        .match-btn.matched { visibility: hidden; }
     </style>
 </head>
-<body data-theme="dark">
+<body>
 
-    <div class="header">
-        <div class="stats-row">
-            <h2 style="margin:0; font-size: 18px;">PolyglotFlow</h2>
-            <div id="status" style="font-size: 11px; font-weight: 800; color: var(--accent);">READY</div>
-            <div onclick="toggleTheme()" style="cursor:pointer;"><i class="fas fa-moon"></i></div>
+<div class="header">
+    <h2 id="lang-title">POLYGLOT FLOW</h2>
+    <p id="status-label" style="font-size: 10px; color: var(--accent); font-weight: 800;">READY</p>
+</div>
+
+<div class="tabs-container">
+    <div class="tab active" onclick="setLanguage('Thai')">🇹🇭 THAI</div>
+    <div class="tab" onclick="setLanguage('Chinese')">🇨🇳 CHINESE</div>
+    <div class="tab" onclick="setLanguage('Korean')">🇰🇷 KOREAN</div>
+</div>
+
+<div class="container">
+    <div class="selector-group">
+        <select id="chapter-select" onchange="renderContent()">
+            <option value="">Choose Chapter...</option>
+        </select>
+        <select id="mode-select" onchange="renderContent()">
+            <option value="vocab">Vocabulary</option>
+            <option value="sentences">Sentences</option>
+            <option value="paragraph">Reading Paragraph</option>
+            <option value="game">Matching Game (5x5)</option>
+        </select>
+    </div>
+
+    <div id="content-area" class="content-card">
+        <div style="text-align: center; color: var(--text-light); padding: 40px 0;">
+            <i class="fas fa-book-open" style="font-size: 40px; margin-bottom: 20px; opacity: 0.2;"></i>
+            <p>Select a chapter to begin</p>
         </div>
     </div>
+</div>
 
-    <div class="lang-tabs" id="lang-tabs">
-        <div class="tab active" onclick="changeLanguage('Thai')">🇹🇭 Thai</div>
-        <div class="tab" onclick="changeLanguage('Chinese')">🇨🇳 Chinese</div>
-        <div class="tab" onclick="changeLanguage('Korean')">🇰🇷 Korean</div>
-    </div>
-
-    <div id="screen-list" class="screen container">
-        <div id="paragraph-area"></div>
-        <div id="list-area"></div>
-    </div>
-
-    <div id="screen-quiz" class="screen hidden container">
-        <div class="main-card" id="quiz-area"></div>
-    </div>
-
-    <div id="screen-input" class="screen hidden container">
-        <div class="main-card">
-            <div class="field"><label>New Word</label><input type="text" id="new-target"></div>
-            <div class="field"><label>Translation</label><input type="text" id="new-trans"></div>
-            <button class="btn-glow" onclick="addNewWord()">Add Manually</button>
-        </div>
-    </div>
-
-    <nav class="nav">
-        <div class="nav-link active" onclick="navTo('screen-list')"><i class="fas fa-book-open"></i></div>
-        <div class="nav-link" onclick="navTo('screen-quiz')"><i class="fas fa-gamepad"></i></div>
-        <div class="nav-link" onclick="navTo('screen-input')"><i class="fas fa-plus"></i></div>
-    </nav>
+<nav class="nav-bar">
+    <div class="nav-btn active" onclick="location.reload()"><i class="fas fa-home"></i></div>
+    <div class="nav-btn" onclick="alert('Progress Saved')"><i class="fas fa-save"></i></div>
+</nav>
 
 <script>
     let currentLang = 'Thai';
-    let langData = {};
+    let fullData = []; // Will hold the array of chapters from JSON
 
-    async function loadLangFile(lang) {
-        const status = document.getElementById('status');
-        status.innerText = "LOADING...";
-        try {
-            // This fetches your external JSON file (e.g., Thai.json)
-            const response = await fetch(`${lang}.json`);
-            if (!response.ok) throw new Error('File not found');
-            langData = await response.json();
-            status.innerText = "LOADED";
-            renderList();
-        } catch (err) {
-            console.error(err);
-            status.innerText = "FILE ERROR";
-            // Fallback to empty if file is missing
-            langData = { Vocabulary_List: "", Paragraph: "File not found." };
-            renderList();
-        }
-    }
-
-    function changeLanguage(lang) {
+    async function setLanguage(lang) {
         currentLang = lang;
-        document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.innerText.includes(lang)));
-        loadLangFile(lang);
-    }
-
-    function renderList() {
-        const listArea = document.getElementById('list-area');
-        const paraArea = document.getElementById('paragraph-area');
-        listArea.innerHTML = '';
+        document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.innerText.includes(lang.toUpperCase())));
+        document.getElementById('status-label').innerText = `FETCHING ${lang.toUpperCase()}...`;
         
-        // Render Paragraph
-        paraArea.innerHTML = `<div class="reading-section"><h3><i class="fas fa-quote-left"></i> Advanced Reading</h3>${langData.Paragraph || ""}</div>`;
-
-        // Parse Vocabulary_List String into Cards
-        // Assuming your JSON format: "word = meaning, word = meaning"
-        if(langData.Vocabulary_List) {
-            const pairs = langData.Vocabulary_List.split(',').map(p => p.trim());
-            pairs.forEach(p => {
-                const [word, mean] = p.split('=').map(i => i.trim());
-                if(word && mean) {
-                    listArea.innerHTML += `
-                        <div class="item-card">
-                            <div class="item-target">${word}</div>
-                            <div style="color: var(--text-light); font-size: 14px;">${mean}</div>
-                        </div>`;
-                }
-            });
+        try {
+            const response = await fetch(`${lang}.json`);
+            fullData = await response.json(); // Expected format: Array of chapter objects
+            updateChapterDropdown();
+            document.getElementById('status-label').innerText = "DATA SYNCED";
+        } catch (e) {
+            document.getElementById('status-label').innerText = "FILE NOT FOUND";
+            console.error(e);
         }
     }
 
-    function navTo(screenId) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-        document.getElementById(screenId).classList.remove('hidden');
-        document.querySelectorAll('.nav-link').forEach(l => {
-            l.classList.toggle('active', l.getAttribute('onclick').includes(screenId));
+    function updateChapterDropdown() {
+        const select = document.getElementById('chapter-select');
+        select.innerHTML = '';
+        fullData.forEach((ch, index) => {
+            select.innerHTML += `<option value="${index}">Chapter ${ch.Chapter_ID || index + 1}: ${ch.Chapter_Name}</option>`;
         });
-        if(screenId === 'screen-quiz') startQuiz();
+        renderContent();
     }
 
-    function startQuiz() {
-        const quizArea = document.getElementById('quiz-area');
-        if(!langData.Vocabulary_List) { quizArea.innerHTML = "No data loaded."; return; }
+    function renderContent() {
+        const chIndex = document.getElementById('chapter-select').value;
+        const mode = document.getElementById('mode-select').value;
+        const area = document.getElementById('content-area');
         
-        // Simple Random Word Quiz
-        const pairs = langData.Vocabulary_List.split(',').map(p => p.trim());
-        const randomPair = pairs[Math.floor(Math.random() * pairs.length)];
-        const [word, mean] = randomPair.split('=').map(i => i.trim());
+        if (chIndex === "" || !fullData[chIndex]) return;
+        const data = fullData[chIndex];
 
-        quizArea.innerHTML = `
-            <div style="text-align:center">
-                <p style="color:var(--primary); font-weight:800">TRANSLATE THIS:</p>
-                <h2>${mean}</h2>
-                <input type="text" id="quiz-input" placeholder="Type in ${currentLang}..." style="text-align:center">
-                <button class="btn-glow" style="margin-top:20px" onclick="checkAnswer('${word}')">Check</button>
-            </div>
-        `;
-    }
-
-    function checkAnswer(correct) {
-        const input = document.getElementById('quiz-input').value.trim();
-        if(input === correct) {
-            alert("Correct! 🎉");
-            startQuiz();
-        } else {
-            alert("Almost! The word is: " + correct);
+        if (mode === 'vocab') {
+            let html = `<h3>Vocabulary</h3>`;
+            const list = data.Vocabulary_List.split(',').map(p => p.trim());
+            list.forEach(p => {
+                const [thai, eng] = p.split('=').map(i => i.trim());
+                html += `<div class="vocab-item"><div class="vocab-word">${thai}</div><div class="vocab-meaning">${eng}</div></div>`;
+            });
+            area.innerHTML = html;
+        } 
+        else if (mode === 'sentences') {
+            let html = `<h3>Example Sentences</h3>`;
+            const sentences = data.Sentences.split(';').map(s => s.trim());
+            sentences.forEach(s => {
+                const [thai, eng] = s.split(':').map(i => i.trim());
+                if(thai && eng) html += `<div class="sentence-item"><div class="sentence-thai">${thai}</div><div class="sentence-eng">${eng}</div></div>`;
+            });
+            area.innerHTML = html;
+        } 
+        else if (mode === 'paragraph') {
+            area.innerHTML = `<h3>Reading</h3><div class="paragraph-text">${data.Paragraph}</div>`;
+        } 
+        else if (mode === 'game') {
+            initGame(data.Vocabulary_List);
         }
     }
 
-    function toggleTheme() {
-        const body = document.body;
-        body.setAttribute('data-theme', body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    // Matching Game Logic
+    let selectedLeft = null;
+    let selectedRight = null;
+
+    function initGame(vocabString) {
+        const area = document.getElementById('content-area');
+        const allPairs = vocabString.split(',').map(p => {
+            const [t, e] = p.split('=').map(i => i.trim());
+            return { t, e };
+        });
+
+        // Pick 5 random pairs
+        const gamePairs = allPairs.sort(() => 0.5 - Math.random()).slice(0, 5);
+        const leftSide = [...gamePairs].sort(() => 0.5 - Math.random());
+        const rightSide = [...gamePairs].sort(() => 0.5 - Math.random());
+
+        area.innerHTML = `<h3>Matching Game</h3><div class="matching-grid" id="game-grid"></div>`;
+        const grid = document.getElementById('game-grid');
+
+        for(let i=0; i<5; i++) {
+            grid.innerHTML += `<div class="match-btn" data-type="left" data-val="${leftSide[i].t}" onclick="handleMatch(this)">${leftSide[i].e}</div>`;
+            grid.innerHTML += `<div class="match-btn" data-type="right" data-val="${rightSide[i].t}" onclick="handleMatch(this)">${rightSide[i].t}</div>`;
+        }
     }
 
-    // Initial Load
-    window.onload = () => loadLangFile('Thai');
+    function handleMatch(btn) {
+        if (btn.classList.contains('matched')) return;
+
+        if (btn.getAttribute('data-type') === 'left') {
+            document.querySelectorAll('[data-type="left"]').forEach(b => b.classList.remove('selected'));
+            selectedLeft = btn;
+            btn.classList.add('selected');
+        } else {
+            if (!selectedLeft) return;
+            selectedRight = btn;
+            if (selectedLeft.getAttribute('data-val') === selectedRight.getAttribute('data-val')) {
+                selectedLeft.classList.add('matched');
+                selectedRight.classList.add('matched');
+                selectedLeft = null;
+                if(document.querySelectorAll('.match-btn:not(.matched)').length === 0) {
+                    document.getElementById('content-area').innerHTML += `<h2 style="text-align:center; color:var(--accent); margin-top:20px;">🎉 CHAPTER CLEAR!</h2>`;
+                }
+            } else {
+                btn.classList.add('error');
+                setTimeout(() => btn.classList.remove('error'), 500);
+            }
+        }
+    }
+
+    window.onload = () => setLanguage('Thai');
 </script>
 </body>
 </html>
