@@ -3,232 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Polyglot Flow | Advanced Learning</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Noto+Sans+Thai:wght@300;500;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <title>Polyglot Flow | High-End Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Noto+Sans+Thai:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
             --primary: #6C5CE7; --secondary: #A29BFE; --accent: #00CEC9; --bg: #0C0C1E;
             --card-bg: rgba(30, 30, 50, 0.9); --text: #F1F2F6; --text-light: #A4A4B5;
-            --glass: rgba(255, 255, 255, 0.03); --font-main: 'Plus Jakarta Sans', 'Noto Sans Thai', sans-serif;
-            --font-display: 'Montserrat', sans-serif;
+            --font-main: 'Plus Jakarta Sans', 'Noto Sans Thai', sans-serif;
         }
 
         body {
             font-family: var(--font-main);
             margin: 0; background: var(--bg); color: var(--text); 
-            line-height: 1.6; padding-bottom: 100px;
+            line-height: 1.6; padding-bottom: 120px; transition: 0.3s;
         }
 
-        /* Typography Override */
-        h1, h2, .chapter-title { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; }
+        /* Header & Labels */
+        .header { padding: 40px 20px 20px; text-align: center; }
+        .status-badge { font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }
+        h1 { margin: 0; font-weight: 800; font-size: 24px; letter-spacing: -1px; }
 
-        .header { padding: 30px 20px; text-align: center; background: linear-gradient(to bottom, rgba(108, 92, 231, 0.1), transparent); }
-        
-        /* Navigation Tabs */
-        .tabs-container { display: flex; gap: 10px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; margin-bottom: 20px; }
+        /* Tabs */
+        .tabs-container { display: flex; gap: 10px; padding: 20px; overflow-x: auto; scrollbar-width: none; }
         .tab { 
-            padding: 12px 24px; border-radius: 12px; background: var(--card-bg); 
-            font-weight: 700; cursor: pointer; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 12px 24px; border-radius: 16px; background: var(--card-bg); 
+            font-weight: 700; cursor: pointer; transition: 0.4s;
             color: var(--text-light); white-space: nowrap; border: 1px solid rgba(255,255,255,0.05);
         }
-        .tab.active { background: var(--primary); color: white; transform: scale(1.05); box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3); }
+        .tab.active { background: var(--primary); color: white; box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3); }
 
         .container { max-width: 600px; margin: 0 auto; padding: 0 20px; }
 
-        /* Menu Selectors */
-        .selector-group { display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; }
-        select { 
-            appearance: none; background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1);
-            color: white; padding: 15px; border-radius: 15px; font-family: var(--font-main); font-weight: 600;
-            cursor: pointer; transition: 0.3s;
+        /* Selectors */
+        .mode-selector { 
+            width: 100%; background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1);
+            color: white; padding: 18px; border-radius: 20px; font-family: var(--font-main); 
+            font-weight: 600; font-size: 16px; margin-bottom: 25px; cursor: pointer;
         }
-        select:focus { outline: none; border-color: var(--primary); }
 
-        /* Content Display Cards */
-        .content-card { background: var(--card-bg); border-radius: 24px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); margin-top: 20px; border: 1px solid rgba(255,255,255,0.05); }
-        .vocab-item { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
-        .vocab-item:hover { transform: translateX(10px); }
-        .vocab-word { font-size: 20px; font-weight: 700; color: var(--accent); }
-        .vocab-meaning { font-size: 14px; color: var(--text-light); }
+        /* Content Area */
+        .content-card { background: var(--card-bg); border-radius: 32px; padding: 30px; border: 1px solid rgba(255,255,255,0.05); min-height: 300px; }
+        .chapter-label { color: var(--primary); font-weight: 800; font-size: 12px; text-transform: uppercase; margin-bottom: 10px; display: block; }
+        
+        /* Elements */
+        .vocab-row { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .vocab-word { font-size: 20px; font-weight: 700; color: #fff; }
+        .vocab-mean { font-size: 14px; color: var(--text-light); }
 
-        .sentence-item { margin-bottom: 20px; padding-left: 15px; border-left: 3px solid var(--primary); }
-        .sentence-thai { font-size: 18px; margin-bottom: 5px; }
-        .sentence-eng { font-size: 14px; color: var(--text-light); font-style: italic; }
+        .sentence-box { margin-bottom: 25px; padding-left: 20px; border-left: 4px solid var(--primary); }
+        .s-target { font-size: 18px; font-weight: 600; margin-bottom: 5px; }
+        .s-trans { font-size: 14px; color: var(--text-light); }
 
-        .paragraph-text { font-size: 17px; line-height: 2.2; text-align: justify; white-space: pre-line; }
+        .reading-text { font-size: 18px; line-height: 2.2; text-align: justify; word-break: break-word; color: #E0E0E0; }
 
         /* Matching Game */
-        .matching-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-        .match-btn { 
-            padding: 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);
-            background: var(--card-bg); color: var(--text); cursor: pointer; transition: 0.2s;
-            min-height: 70px; display: flex; align-items: center; justify-content: center; text-align: center;
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .m-btn { 
+            padding: 15px; border-radius: 18px; background: rgba(255,255,255,0.03); 
+            border: 1px solid rgba(255,255,255,0.1); color: #fff; cursor: pointer;
+            min-height: 80px; display: flex; align-items: center; justify-content: center; text-align: center;
+            font-weight: 600; transition: 0.2s;
         }
-        .match-btn.selected { background: var(--primary); border-color: var(--secondary); transform: scale(0.98); }
-        .match-btn.matched { visibility: hidden; opacity: 0; pointer-events: none; }
-        .match-btn.error { background: #ff7675; }
+        .m-btn.selected { background: var(--primary); border-color: var(--secondary); transform: scale(0.96); }
+        .m-btn.matched { visibility: hidden; pointer-events: none; }
 
-        .nav-bar { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 220px; background: rgba(30, 30, 50, 0.8); backdrop-filter: blur(20px); border-radius: 50px; display: flex; justify-content: space-around; padding: 15px; border: 1px solid rgba(255,255,255,0.1); }
-        .nav-btn { color: var(--text-light); font-size: 20px; cursor: pointer; transition: 0.3s; }
-        .nav-btn.active { color: var(--primary); }
-
-        .hidden { display: none; }
+        /* Navigation */
+        .nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(30, 30, 50, 0.8); backdrop-filter: blur(20px); padding: 15px 30px; border-radius: 40px; display: flex; gap: 40px; border: 1px solid rgba(255,255,255,0.1); }
+        .nav i { font-size: 20px; color: var(--text-light); cursor: pointer; }
+        .nav i.active { color: var(--primary); }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h2 id="lang-title">POLYGLOT FLOW</h2>
-    <p id="status-label" style="font-size: 10px; color: var(--accent); font-weight: 800;">READY</p>
+    <div class="status-badge" id="status">Syncing...</div>
+    <h1 id="chapter-title">SELECT LANGUAGE</h1>
 </div>
 
 <div class="tabs-container">
-    <div class="tab active" onclick="setLanguage('Thai')">🇹🇭 THAI</div>
-    <div class="tab" onclick="setLanguage('Chinese')">🇨🇳 CHINESE</div>
-    <div class="tab" onclick="setLanguage('Korean')">🇰🇷 KOREAN</div>
+    <div class="tab active" onclick="loadLang('Thai')">🇹🇭 THAI</div>
+    <div class="tab" onclick="loadLang('Chinese')">🇨🇳 CHINESE</div>
+    <div class="tab" onclick="loadLang('Korean')">🇰🇷 KOREAN</div>
 </div>
 
 <div class="container">
-    <div class="selector-group">
-        <select id="chapter-select" onchange="renderContent()">
-            <option value="">Choose Chapter...</option>
-        </select>
-        <select id="mode-select" onchange="renderContent()">
-            <option value="vocab">Vocabulary</option>
-            <option value="sentences">Sentences</option>
-            <option value="paragraph">Reading Paragraph</option>
-            <option value="game">Matching Game (5x5)</option>
-        </select>
-    </div>
+    <select class="mode-selector" id="mode" onchange="render()">
+        <option value="vocab">Vocabulary List</option>
+        <option value="sentences">Example Sentences</option>
+        <option value="paragraph">Reading Paragraph</option>
+        <option value="game">Matching Game (5x5)</option>
+    </select>
 
-    <div id="content-area" class="content-card">
-        <div style="text-align: center; color: var(--text-light); padding: 40px 0;">
-            <i class="fas fa-book-open" style="font-size: 40px; margin-bottom: 20px; opacity: 0.2;"></i>
-            <p>Select a chapter to begin</p>
-        </div>
-    </div>
+    <div id="display" class="content-card"></div>
 </div>
 
-<nav class="nav-bar">
-    <div class="nav-btn active" onclick="location.reload()"><i class="fas fa-home"></i></div>
-    <div class="nav-btn" onclick="alert('Progress Saved')"><i class="fas fa-save"></i></div>
+<nav class="nav">
+    <i class="fas fa-home active"></i>
+    <i class="fas fa-book" onclick="render()"></i>
+    <i class="fas fa-cog"></i>
 </nav>
 
 <script>
-    let currentLang = 'Thai';
-    let fullData = []; // Will hold the array of chapters from JSON
+    let currentData = null;
+    let selectedLeft = null;
 
-    async function setLanguage(lang) {
-        currentLang = lang;
+    async function loadLang(lang) {
+        const status = document.getElementById('status');
         document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.innerText.includes(lang.toUpperCase())));
-        document.getElementById('status-label').innerText = `FETCHING ${lang.toUpperCase()}...`;
         
         try {
-            const response = await fetch(`${lang}.json`);
-            fullData = await response.json(); // Expected format: Array of chapter objects
-            updateChapterDropdown();
-            document.getElementById('status-label').innerText = "DATA SYNCED";
+            const res = await fetch(`${lang}.json`);
+            currentData = await res.json();
+            document.getElementById('chapter-title').innerText = currentData.Chapter_name.replace(/_/g, ' ').toUpperCase();
+            status.innerText = "Data Connected";
+            render();
         } catch (e) {
-            document.getElementById('status-label').innerText = "FILE NOT FOUND";
-            console.error(e);
+            status.innerText = "File Not Found";
+            document.getElementById('display').innerHTML = `<p style="text-align:center; opacity:0.5">Please ensure ${lang}.json is in the folder and you are using a local server.</p>`;
         }
     }
 
-    function updateChapterDropdown() {
-        const select = document.getElementById('chapter-select');
-        select.innerHTML = '';
-        fullData.forEach((ch, index) => {
-            select.innerHTML += `<option value="${index}">Chapter ${ch.Chapter_ID || index + 1}: ${ch.Chapter_Name}</option>`;
-        });
-        renderContent();
-    }
-
-    function renderContent() {
-        const chIndex = document.getElementById('chapter-select').value;
-        const mode = document.getElementById('mode-select').value;
-        const area = document.getElementById('content-area');
-        
-        if (chIndex === "" || !fullData[chIndex]) return;
-        const data = fullData[chIndex];
+    function render() {
+        if(!currentData) return;
+        const mode = document.getElementById('mode').value;
+        const display = document.getElementById('display');
+        display.innerHTML = `<span class="chapter-label">${currentData.Chapter_name}</span>`;
 
         if (mode === 'vocab') {
-            let html = `<h3>Vocabulary</h3>`;
-            const list = data.Vocabulary_List.split(',').map(p => p.trim());
-            list.forEach(p => {
-                const [thai, eng] = p.split('=').map(i => i.trim());
-                html += `<div class="vocab-item"><div class="vocab-word">${thai}</div><div class="vocab-meaning">${eng}</div></div>`;
+            const items = currentData.Vocabulary_List.split(',').map(v => v.trim());
+            items.forEach(item => {
+                const [word, mean] = item.split('=').map(s => s.trim());
+                display.innerHTML += `<div class="vocab-row"><div class="vocab-word">${word}</div><div class="vocab-mean">${mean}</div></div>`;
             });
-            area.innerHTML = html;
         } 
         else if (mode === 'sentences') {
-            let html = `<h3>Example Sentences</h3>`;
-            const sentences = data.Sentences.split(';').map(s => s.trim());
+            const sentences = currentData.Sentences.split(';').map(s => s.trim());
             sentences.forEach(s => {
-                const [thai, eng] = s.split(':').map(i => i.trim());
-                if(thai && eng) html += `<div class="sentence-item"><div class="sentence-thai">${thai}</div><div class="sentence-eng">${eng}</div></div>`;
+                const [target, trans] = s.split(':').map(i => i.trim());
+                if(target && trans) {
+                    display.innerHTML += `<div class="sentence-box"><div class="s-target">${target}</div><div class="s-trans">${trans}</div></div>`;
+                }
             });
-            area.innerHTML = html;
         } 
         else if (mode === 'paragraph') {
-            area.innerHTML = `<h3>Reading</h3><div class="paragraph-text">${data.Paragraph}</div>`;
+            display.innerHTML += `<div class="reading-text">${currentData.Paragraph}</div>`;
         } 
         else if (mode === 'game') {
-            initGame(data.Vocabulary_List);
+            setupGame();
         }
     }
 
-    // Matching Game Logic
-    let selectedLeft = null;
-    let selectedRight = null;
-
-    function initGame(vocabString) {
-        const area = document.getElementById('content-area');
-        const allPairs = vocabString.split(',').map(p => {
-            const [t, e] = p.split('=').map(i => i.trim());
+    function setupGame() {
+        const display = document.getElementById('display');
+        const all = currentData.Vocabulary_List.split(',').map(v => {
+            const [t, e] = v.split('=').map(s => s.trim());
             return { t, e };
-        });
+        }).sort(() => 0.5 - Math.random()).slice(0, 5);
 
-        // Pick 5 random pairs
-        const gamePairs = allPairs.sort(() => 0.5 - Math.random()).slice(0, 5);
-        const leftSide = [...gamePairs].sort(() => 0.5 - Math.random());
-        const rightSide = [...gamePairs].sort(() => 0.5 - Math.random());
+        const leftSide = [...all].sort(() => 0.5 - Math.random());
+        const rightSide = [...all].sort(() => 0.5 - Math.random());
 
-        area.innerHTML = `<h3>Matching Game</h3><div class="matching-grid" id="game-grid"></div>`;
-        const grid = document.getElementById('game-grid');
-
+        display.innerHTML += `<div class="grid" id="g"></div>`;
+        const g = document.getElementById('g');
+        
         for(let i=0; i<5; i++) {
-            grid.innerHTML += `<div class="match-btn" data-type="left" data-val="${leftSide[i].t}" onclick="handleMatch(this)">${leftSide[i].e}</div>`;
-            grid.innerHTML += `<div class="match-btn" data-type="right" data-val="${rightSide[i].t}" onclick="handleMatch(this)">${rightSide[i].t}</div>`;
+            g.innerHTML += `<div class="m-btn" data-v="${leftSide[i].t}" onclick="match(this, 'L')">${leftSide[i].e}</div>`;
+            g.innerHTML += `<div class="m-btn" data-v="${rightSide[i].t}" onclick="match(this, 'R')">${rightSide[i].t}</div>`;
         }
     }
 
-    function handleMatch(btn) {
-        if (btn.classList.contains('matched')) return;
-
-        if (btn.getAttribute('data-type') === 'left') {
-            document.querySelectorAll('[data-type="left"]').forEach(b => b.classList.remove('selected'));
+    function match(btn, side) {
+        if(btn.classList.contains('matched')) return;
+        if(side === 'L') {
+            document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('selected'));
             selectedLeft = btn;
             btn.classList.add('selected');
         } else {
-            if (!selectedLeft) return;
-            selectedRight = btn;
-            if (selectedLeft.getAttribute('data-val') === selectedRight.getAttribute('data-val')) {
+            if(!selectedLeft) return;
+            if(selectedLeft.dataset.v === btn.dataset.v) {
                 selectedLeft.classList.add('matched');
-                selectedRight.classList.add('matched');
+                btn.classList.add('matched');
                 selectedLeft = null;
-                if(document.querySelectorAll('.match-btn:not(.matched)').length === 0) {
-                    document.getElementById('content-area').innerHTML += `<h2 style="text-align:center; color:var(--accent); margin-top:20px;">🎉 CHAPTER CLEAR!</h2>`;
+                if(document.querySelectorAll('.m-btn:not(.matched)').length === 0) {
+                    document.getElementById('display').innerHTML += `<h2 style="text-align:center; color:var(--accent)">MATCH COMPLETE!</h2>`;
                 }
             } else {
-                btn.classList.add('error');
-                setTimeout(() => btn.classList.remove('error'), 500);
+                btn.style.borderColor = "#ff7675";
+                setTimeout(() => btn.style.borderColor = "rgba(255,255,255,0.1)", 500);
             }
         }
     }
 
-    window.onload = () => setLanguage('Thai');
+    window.onload = () => loadLang('Thai');
 </script>
 </body>
 </html>
