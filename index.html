@@ -54,7 +54,6 @@
         .s-target { font-size: 20px; font-weight: 600; color: #fff; }
         .s-trans { font-size: 14px; color: var(--text-light); font-style: italic; }
         
-        /* Audio Popup Style */
         .audio-popup {
             position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%);
             background: var(--primary); color: white; padding: 12px 25px;
@@ -64,7 +63,6 @@
         }
         .audio-popup.show { opacity: 1; transform: translateX(-50%) translateY(-10px); }
 
-        .paragraph-text { font-size: 20px; line-height: 2.1; color: #eee; white-space: pre-line; }
         .progress-text { font-size: 10px; font-weight: 800; color: var(--accent); letter-spacing: 2px; text-align: center; margin-bottom: 18px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .m-btn { 
@@ -73,7 +71,7 @@
             min-height: 75px; display: flex; align-items: center; justify-content: center; text-align: center;
             font-size: 15px; font-weight: 600; transition: 0.25s;
         }
-        .m-btn.selected { background: var(--primary); transform: scale(0.97); }
+        .m-btn.selected { background: var(--primary); border-color: var(--accent); transform: scale(0.97); }
         .m-btn.matched { opacity: 0; pointer-events: none; transform: scale(0.8); }
         
         .nav { 
@@ -88,8 +86,6 @@
         .nav-item.active { color: var(--primary); }
         .hidden { display: none; }
         
-        .input-group { margin-bottom: 15px; }
-        .input-label { font-size: 10px; color: var(--accent); font-weight: 800; margin-bottom: 5px; display: block; }
         .submit-btn { 
             background: var(--primary); color: white; border: none; width: 100%; 
             padding: 18px; border-radius: 16px; font-weight: 800; cursor: pointer; margin-top: 10px;
@@ -132,18 +128,9 @@
     <div class="content-card">
         <span class="status-badge">Add New to <span id="target-lang-label">Thai</span></span>
         <div style="margin-top:20px;"></div>
-        <div class="input-group">
-            <span class="input-label">TOPIC / CATEGORY</span>
-            <input type="text" id="in-topic" placeholder="e.g. Food, Travel">
-        </div>
-        <div class="input-group">
-            <span class="input-label">WORD</span>
-            <input type="text" id="in-word" placeholder="Target Word">
-        </div>
-        <div class="input-group">
-            <span class="input-label">MEANING</span>
-            <input type="text" id="in-mean" placeholder="Translation">
-        </div>
+        <input type="text" id="in-topic" placeholder="Category (e.g. Work, Food)" style="margin-bottom:12px;">
+        <input type="text" id="in-word" placeholder="Target Word" style="margin-bottom:12px;">
+        <input type="text" id="in-mean" placeholder="Translation" style="margin-bottom:12px;">
         <button class="submit-btn" onclick="submitNewWord()">SAVE TO CLOUD</button>
     </div>
 </div>
@@ -171,9 +158,8 @@
     let totalWords = 0;
 
     const fileMap = { 'Thai': 'Thai.json', 'Chinese': 'chinese.json', 'Korean': 'korea.json' };
-    const { pinyin } = pinyinPro; // Initialize the Pinyin library
+    const { pinyin } = pinyinPro;
 
-    // --- Core Audio & Logic Function ---
     function speak(text, lang) {
         if (!text) return;
         window.speechSynthesis.cancel(); 
@@ -181,34 +167,59 @@
         let displayText = text;
         let speechText = text;
 
-        // 1. Language Specific Filtering & Auto-Generation
         if (lang === 'Chinese') {
-            // Filter audio to Hanzi ONLY
             speechText = text.replace(/[^\u4e00-\u9fa5]/g, '');
-            // Auto-Pinyin if missing English letters
             if (!/[a-zA-Z]/.test(text)) {
                 displayText = `${speechText} (${pinyin(speechText)})`;
             }
         } else if (lang === 'Thai') {
             speechText = text.replace(/[^\u0E00-\u0E7F]/g, '');
         } else if (lang === 'Korean') {
-            speechText = text.replace(/[^\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/g, '');
+            speechText = text.replace(/[^\uAC00-\uD7AF\u1100-\u11FF]/g, '');
         }
 
-        // 2. Visual Toast Feedback
         const toast = document.getElementById('audio-toast');
         toast.innerText = displayText;
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 2000);
 
-        // 3. TTS Trigger
         if (speechText.trim().length > 0) {
             const msg = new SpeechSynthesisUtterance(speechText);
-            const langCodes = { 'Thai': 'th-TH', 'Chinese': 'zh-CN', 'Korean': 'ko-KR' };
-            msg.lang = langCodes[lang];
+            const codes = { 'Thai': 'th-TH', 'Chinese': 'zh-CN', 'Korean': 'ko-KR' };
+            msg.lang = codes[lang];
             msg.rate = 0.9; 
             window.speechSynthesis.speak(msg);
         }
+    }
+
+    async function fetchData() {
+        try {
+            const response = await fetch(`./${fileMap[currentLang]}?v=${new Date().getTime()}`);
+            const data = await response.json();
+            rawData = Array.isArray(data) ? data : [data];
+            
+            const cloudRes = await fetch(SCRIPT_URL);
+            customData = await cloudRes.json();
+
+            populateChapters();
+            document.getElementById('status').innerText = "System Live";
+        } catch (e) { 
+            document.getElementById('status').innerText = "Sync Error"; 
+        }
+    }
+
+    function populateChapters() {
+        const studySelect = document.getElementById('study-chapter');
+        const gameSelect = document.getElementById('game-chapter');
+        if (!rawData) return;
+
+        const options = rawData.map((ch, i) => `<option value="${i}">${ch.Chapter_name || 'Chapter ' + (i+1)}</option>`).join('');
+        studySelect.innerHTML = options;
+        
+        // Add "My Saved Words" to Game dropdown
+        gameSelect.innerHTML = `<option value="cloud">⭐ My Saved Words</option>` + options;
+        
+        renderStudy();
     }
 
     async function switchLang(lang) {
@@ -219,7 +230,7 @@
         if(currentView === 'star') renderStarList();
     }
 
-    async function switchView(view) {
+    function switchView(view) {
         currentView = view;
         const views = ['view-study', 'view-game', 'view-upload', 'view-star'];
         views.forEach(v => document.getElementById(v).classList.add('hidden'));
@@ -231,142 +242,61 @@
         });
 
         if(view === 'game') resetGame(); 
-        else if(view === 'study') renderStudy();
         else if(view === 'star') renderStarList();
     }
 
-    async function fetchData() {
-        try {
-            const response = await fetch(`./${fileMap[currentLang]}?v=${new Date().getTime()}`);
-            const data = await response.json();
-            rawData = Array.isArray(data) ? data : [data];
-            populateChapters();
-            
-            const cloudRes = await fetch(SCRIPT_URL);
-            customData = await cloudRes.json();
-            document.getElementById('status').innerText = "System Live";
-        } catch (e) { 
-            document.getElementById('status').innerText = "Sync Error"; 
-        }
-    }
-
-    function renderStarList() {
-        const display = document.getElementById('star-display');
-        const filtered = customData.filter(item => item.lang === currentLang);
-        display.innerHTML = `<span class="status-badge">My ${currentLang} List</span><div style="margin-top:20px;"></div>`;
-        
-        if(filtered.length === 0) {
-            display.innerHTML += "<p style='text-align:center; padding-top:100px; color:var(--text-light)'>No saved words yet.</p>";
-            return;
-        }
-
-        filtered.reverse().forEach(item => {
-            display.innerHTML += `
-                <div class="vocab-row" onclick="speak('${item.target}', '${currentLang}')">
-                    <i class="fa-solid fa-volume-high"></i>
-                    <span style="font-size:10px; color:var(--accent); font-weight:800;">${item.topic.toUpperCase()}</span>
-                    <span class="vocab-word">${item.target}</span>
-                    <span class="vocab-mean">${item.trans}</span>
-                </div>`;
-        });
-    }
-
-    async function submitNewWord() {
-        const btn = document.querySelector('.submit-btn');
-        const payload = {
-            lang: currentLang,
-            topic: document.getElementById('in-topic').value || "General",
-            target: document.getElementById('in-word').value,
-            trans: document.getElementById('in-mean').value
-        };
-
-        if(!payload.target || !payload.trans) return alert("Please fill Word and Meaning");
-        btn.innerText = "SAVING...";
-        btn.disabled = true;
-
-        try {
-            await fetch(SCRIPT_URL, {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify(payload)
-            });
-            document.getElementById('in-word').value = "";
-            document.getElementById('in-mean').value = "";
-            alert("Saved successfully!");
-            await fetchData();
-            switchView('star');
-        } catch (e) { alert("Error saving"); }
-        finally { btn.innerText = "SAVE TO CLOUD"; btn.disabled = false; }
-    }
-
-    function populateChapters() {
-        const studySelect = document.getElementById('study-chapter');
-        const gameSelect = document.getElementById('game-chapter');
-        if (!rawData || rawData.length === 0) return;
-        const options = rawData.map((ch, i) => `<option value="${i}">${ch.Chapter_name || 'Chapter ' + (i+1)}</option>`).join('');
-        studySelect.innerHTML = options;
-        gameSelect.innerHTML = options;
-        renderStudy();
-    }
-
     function renderStudy() {
-        const studySelect = document.getElementById('study-chapter');
-        const index = studySelect.value || 0;
+        const index = document.getElementById('study-chapter').value || 0;
         const mode = document.getElementById('study-mode').value;
         const display = document.getElementById('study-display');
-        if(!rawData || !rawData[index]) return;
         const ch = rawData[index];
-        display.innerHTML = `<span style="font-size:10px; color:var(--primary); font-weight:800; letter-spacing:1px;">${ch.Chapter_name}</span><div style="margin-top:20px;"></div>`;
+        if(!ch) return;
+
+        display.innerHTML = `<span class="status-badge">${ch.Chapter_name}</span><div style="margin-top:20px;"></div>`;
         
         if (mode === 'vocab') {
-            const list = ch.Vocabulary_List || "";
-            list.split(',').forEach(v => {
+            (ch.Vocabulary_List || "").split(',').forEach(v => {
                 const p = v.split('=').map(s => s.trim());
                 if(p.length >= 2) {
-                    display.innerHTML += `
-                    <div class="vocab-row" onclick="speak('${p[0]}', '${currentLang}')">
-                        <i class="fa-solid fa-volume-high"></i>
-                        <span class="vocab-word">${p[0]}</span>
-                        <span class="vocab-mean">${p[1]}</span>
-                    </div>`;
+                    display.innerHTML += `<div class="vocab-row" onclick="speak('${p[0]}', '${currentLang}')"><i class="fa-solid fa-volume-high"></i><span class="vocab-word">${p[0]}</span><span class="vocab-mean">${p[1]}</span></div>`;
                 }
             });
         } else if (mode === 'sentences') {
-            const sentences = ch.Sentences || "";
-            sentences.split(';').forEach(s => {
+            (ch.Sentences || "").split(';').forEach(s => {
                 const p = s.split(':').map(i => i.trim());
                 if(p.length >= 2) {
-                    display.innerHTML += `
-                    <div class="sentence-box" onclick="speak('${p[0]}', '${currentLang}')">
-                        <div class="s-target">${p[0]}</div>
-                        <div class="s-trans">${p[1]}</div>
-                    </div>`;
+                    display.innerHTML += `<div class="sentence-box" onclick="speak('${p[0]}', '${currentLang}')"><div class="s-target">${p[0]}</div><div class="s-trans">${p[1]}</div></div>`;
                 }
             });
         } else if (mode === 'paragraph') {
-            display.innerHTML += `<div class="paragraph-text" onclick="speak(this.innerText, '${currentLang}')">${ch.Paragraph || "No text available."}</div>`;
+            display.innerHTML += `<div class="paragraph-text" onclick="speak(this.innerText, '${currentLang}')">${ch.Paragraph || "..."}</div>`;
         }
     }
 
     function resetGame() {
-        if(!rawData) return;
-        const index = document.getElementById('game-chapter').value || 0;
-        const ch = rawData[index];
-        if(!ch) return;
-        const list = ch.Vocabulary_List || "";
-        gamePool = list.split(',').map(v => {
-            const p = v.split('=').map(s => s.trim());
-            return { t: p[0], e: p[1] };
-        }).filter(x => x.t && x.e);
-        totalWords = gamePool.length; 
-        wordsCleared = 0;
+        const selection = document.getElementById('game-chapter').value;
+        if (selection === "cloud") {
+            const filtered = customData.filter(item => item.lang === currentLang);
+            if(filtered.length < 2) {
+                document.getElementById('game-display').innerHTML = `<p style='text-align:center; padding-top:100px; color:var(--text-light)'>Add at least 2 words to your list first!</p>`;
+                return;
+            }
+            gamePool = filtered.map(item => ({ t: item.target, e: item.trans }));
+        } else {
+            const ch = rawData[selection || 0];
+            gamePool = (ch.Vocabulary_List || "").split(',').map(v => {
+                const p = v.split('=').map(s => s.trim());
+                return { t: p[0], e: p[1] };
+            }).filter(x => x.t && x.e);
+        }
+        totalWords = gamePool.length; wordsCleared = 0;
         renderGameRound();
     }
 
     function renderGameRound() {
         const display = document.getElementById('game-display');
         if (gamePool.length === 0) {
-            display.innerHTML = `<div style="text-align:center; padding-top:60px;"><h2 style="font-weight:800;">MASTERY COMPLETE</h2><button onclick="resetGame()" style="background:var(--primary); color:white; border:none; padding:18px 40px; border-radius:18px; font-weight:700; cursor:pointer; margin-top:15px;">PLAY AGAIN</button></div>`;
+            display.innerHTML = `<div style="text-align:center; padding-top:60px;"><h2>MASTERY COMPLETE</h2><button class="submit-btn" onclick="resetGame()">PLAY AGAIN</button></div>`;
             return;
         }
         const currentRound = gamePool.slice(0, 5);
@@ -385,8 +315,7 @@
         if(side === 'L') {
             document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('selected'));
             selectedLeft = btn; btn.classList.add('selected');
-        } else {
-            if(!selectedLeft) return;
+        } else if(selectedLeft) {
             if(selectedLeft.dataset.v === btn.dataset.v) {
                 speak(btn.dataset.v, currentLang);
                 selectedLeft.classList.add('matched'); btn.classList.add('matched');
@@ -400,6 +329,31 @@
                 setTimeout(() => btn.style.borderColor = "rgba(255,255,255,0.08)", 400);
             }
         }
+    }
+
+    function renderStarList() {
+        const display = document.getElementById('star-display');
+        const filtered = customData.filter(item => item.lang === currentLang);
+        display.innerHTML = `<span class="status-badge">My ${currentLang} List</span><div style="margin-top:20px;"></div>`;
+        if(filtered.length === 0) {
+            display.innerHTML += "<p style='text-align:center; padding-top:100px; color:var(--text-light)'>List is empty.</p>";
+            return;
+        }
+        filtered.reverse().forEach(item => {
+            display.innerHTML += `<div class="vocab-row" onclick="speak('${item.target}', '${currentLang}')"><i class="fa-solid fa-volume-high"></i><span style="font-size:10px; color:var(--accent); font-weight:800;">${item.topic.toUpperCase()}</span><span class="vocab-word">${item.target}</span><span class="vocab-mean">${item.trans}</span></div>`;
+        });
+    }
+
+    async function submitNewWord() {
+        const btn = document.querySelector('.submit-btn');
+        const payload = { lang: currentLang, topic: document.getElementById('in-topic').value || "General", target: document.getElementById('in-word').value, trans: document.getElementById('in-mean').value };
+        if(!payload.target || !payload.trans) return alert("Fill Word and Meaning");
+        btn.innerText = "SAVING..."; btn.disabled = true;
+        try {
+            await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
+            document.getElementById('in-word').value = ""; document.getElementById('in-mean').value = "";
+            await fetchData(); switchView('star');
+        } catch (e) { alert("Error saving"); } finally { btn.innerText = "SAVE TO CLOUD"; btn.disabled = false; }
     }
 
     window.onload = fetchData;
