@@ -53,6 +53,16 @@
         .s-target { font-size: 20px; font-weight: 600; color: #fff; }
         .s-trans { font-size: 14px; color: var(--text-light); font-style: italic; }
         
+        /* Audio Popup Style */
+        .audio-popup {
+            position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%);
+            background: var(--primary); color: white; padding: 12px 25px;
+            border-radius: 20px; font-weight: 600; font-size: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 2000;
+            opacity: 0; transition: 0.3s; pointer-events: none; text-align: center;
+        }
+        .audio-popup.show { opacity: 1; transform: translateX(-50%) translateY(-10px); }
+
         .paragraph-text { font-size: 20px; line-height: 2.1; color: #eee; white-space: pre-line; }
         .progress-text { font-size: 10px; font-weight: 800; color: var(--accent); letter-spacing: 2px; text-align: center; margin-bottom: 18px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -96,6 +106,8 @@
     <div class="tab" onclick="switchLang('Chinese')">CHINESE</div>
     <div class="tab" onclick="switchLang('Korean')">KOREAN</div>
 </div>
+
+<div id="audio-toast" class="audio-popup"></div>
 
 <div id="view-study" class="container">
     <div class="controls">
@@ -158,40 +170,38 @@
 
     const fileMap = { 'Thai': 'Thai.json', 'Chinese': 'chinese.json', 'Korean': 'korea.json' };
 
-    // --- Audio Function ---
-function speak(text, lang) {
-    if (!text) return;
-    window.speechSynthesis.cancel(); 
-    
-    let cleanText = text;
+    // --- Audio Function with Popup and Dual-Sound Fix ---
+    function speak(text, lang) {
+        if (!text) return;
+        window.speechSynthesis.cancel(); 
 
-    if (lang === 'Chinese') {
-        // Keep ONLY Chinese characters (Hanzi), remove Pinyin, English, and brackets
-        cleanText = text.replace(/[^\u4e00-\u9fa5]/g, '');
-    } 
-    else if (lang === 'Thai') {
-        // Keep ONLY Thai characters, remove English/Phonetics
-        cleanText = text.replace(/[^\u0E00-\u0E7F]/g, '');
-    }
-    else if (lang === 'Korean') {
-        // Keep ONLY Hangul, remove English/Romanization
-        cleanText = text.replace(/[^\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/g, '');
+        // 1. Show the Popup with Full Text (Pinyin included)
+        const toast = document.getElementById('audio-toast');
+        toast.innerText = text;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+
+        // 2. Clean text for Voice Engine (Native Only)
+        let cleanText = text;
+        if (lang === 'Chinese') {
+            cleanText = text.replace(/[^\u4e00-\u9fa5]/g, '');
+        } else if (lang === 'Thai') {
+            cleanText = text.replace(/[^\u0E00-\u0E7F]/g, '');
+        } else if (lang === 'Korean') {
+            cleanText = text.replace(/[^\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/g, '');
+        }
+
+        // 3. Trigger Voice
+        if (cleanText.trim().length > 0) {
+            const msg = new SpeechSynthesisUtterance(cleanText);
+            if (lang === 'Thai') msg.lang = 'th-TH';
+            else if (lang === 'Chinese') msg.lang = 'zh-CN';
+            else if (lang === 'Korean') msg.lang = 'ko-KR';
+            msg.rate = 0.9; 
+            window.speechSynthesis.speak(msg);
+        }
     }
 
-    // Only speak if we actually have text left after cleaning
-    if (cleanText.trim().length > 0) {
-        const msg = new SpeechSynthesisUtterance(cleanText);
-        
-        if (lang === 'Thai') msg.lang = 'th-TH';
-        else if (lang === 'Chinese') msg.lang = 'zh-CN';
-        else if (lang === 'Korean') msg.lang = 'ko-KR';
-        
-        // Slightly slow down the speed for better learning (0.9 is 90% speed)
-        msg.rate = 0.9; 
-        
-        window.speechSynthesis.speak(msg);
-    }
-}
     async function switchLang(lang) {
         currentLang = lang;
         document.getElementById('target-lang-label').innerText = lang;
@@ -218,16 +228,13 @@ function speak(text, lang) {
 
     async function fetchData() {
         try {
-            // 1. Static Files
             const response = await fetch(`./${fileMap[currentLang]}?v=${new Date().getTime()}`);
             const data = await response.json();
             rawData = Array.isArray(data) ? data : [data];
             populateChapters();
             
-            // 2. Cloud Data
             const cloudRes = await fetch(SCRIPT_URL);
             customData = await cloudRes.json();
-
             document.getElementById('status').innerText = "System Live";
         } catch (e) { 
             console.error(e);
