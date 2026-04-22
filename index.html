@@ -6,7 +6,6 @@
     <title>Polyglot Flow</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script src="https://unpkg.com/pinyin-pro"></script>
 
     <style>
@@ -26,76 +25,65 @@
         .header { padding: 45px 20px 15px; text-align: center; }
         .status-badge { font-size: 10px; letter-spacing: 2.5px; color: var(--accent); font-weight: 800; text-transform: uppercase; }
         h1 { margin: 8px 0 0; font-weight: 800; font-size: 22px; color: #fff; letter-spacing: -0.5px; }
+        
+        /* Language Tab Styling */
         .tabs-container { display: flex; gap: 10px; padding: 20px; overflow-x: auto; scrollbar-width: none; justify-content: center; }
         .tab { 
             padding: 11px 22px; border-radius: 12px; background: var(--card-bg); 
             font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 13px;
             color: var(--text-light); border: 1px solid rgba(255,255,255,0.05);
         }
-        .tab.active { background: var(--primary); color: white; transform: translateY(-1px); }
+        .tab.active { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4); }
+
         .container { max-width: 500px; margin: 0 auto; padding: 0 20px; }
         .controls { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
         select, input { 
             width: 100%; background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1);
-            color: white; padding: 16px; border-radius: 16px; font-family: var(--font-main); 
-            font-weight: 600; font-size: 15px; outline: none;
+            color: white; padding: 16px; border-radius: 16px; font-size: 15px; outline: none;
         }
         .content-card { 
             background: var(--card-bg); border-radius: 30px; padding: 28px; 
             border: 1px solid rgba(255,255,255,0.05); min-height: 400px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
         }
-        .vocab-row { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; position: relative; }
+        .vocab-row { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
         .vocab-word { font-size: 22px; font-weight: 600; color: #fff; display: block; }
         .vocab-mean { font-size: 14px; color: var(--text-light); }
         .fa-volume-high { float: right; color: var(--primary); font-size: 14px; margin-top: 10px; opacity: 0.6; }
-        
-        .sentence-box { margin-bottom: 22px; padding-left: 18px; border-left: 4px solid var(--primary); cursor: pointer; }
-        .s-target { font-size: 20px; font-weight: 600; color: #fff; }
-        .s-trans { font-size: 14px; color: var(--text-light); font-style: italic; }
         
         .audio-popup {
             position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%);
             background: var(--primary); color: white; padding: 12px 25px;
             border-radius: 20px; font-weight: 600; font-size: 16px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 2000;
-            opacity: 0; transition: 0.3s; pointer-events: none; text-align: center;
+            opacity: 0; transition: 0.3s; pointer-events: none;
         }
         .audio-popup.show { opacity: 1; transform: translateX(-50%) translateY(-10px); }
 
-        .progress-text { font-size: 10px; font-weight: 800; color: var(--accent); letter-spacing: 2px; text-align: center; margin-bottom: 18px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .m-btn { 
             padding: 14px; border-radius: 18px; background: rgba(255,255,255,0.02); 
             border: 1px solid rgba(255,255,255,0.08); color: #fff; cursor: pointer;
             min-height: 75px; display: flex; align-items: center; justify-content: center; text-align: center;
-            font-size: 15px; font-weight: 600; transition: 0.25s;
         }
-        .m-btn.selected { background: var(--primary); border-color: var(--accent); transform: scale(0.97); }
-        .m-btn.matched { opacity: 0; pointer-events: none; transform: scale(0.8); }
-        
+        .m-btn.selected { background: var(--primary); border-color: var(--accent); }
+        .m-btn.matched { opacity: 0; pointer-events: none; }
+
         .nav { 
             position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%); 
             background: rgba(10, 10, 25, 0.95); backdrop-filter: blur(20px); 
             padding: 14px 25px; border-radius: 40px; display: flex; gap: 30px; 
-            border: 1px solid rgba(255,255,255,0.1); z-index: 1000; width: max-content;
+            border: 1px solid rgba(255,255,255,0.1); z-index: 1000;
         }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-light); cursor: pointer; transition: 0.3s; }
-        .nav-item i { font-size: 18px; }
-        .nav-item span { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-light); cursor: pointer; }
         .nav-item.active { color: var(--primary); }
         .hidden { display: none; }
-        
-        .submit-btn { 
-            background: var(--primary); color: white; border: none; width: 100%; 
-            padding: 18px; border-radius: 16px; font-weight: 800; cursor: pointer; margin-top: 10px;
-        }
+        .submit-btn { background: var(--primary); color: white; border: none; width: 100%; padding: 18px; border-radius: 16px; font-weight: 800; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="status-badge" id="status">Connecting</div>
+    <div class="status-badge" id="status">Ready</div>
     <h1>Polyglot Flow</h1>
 </div>
 
@@ -128,10 +116,10 @@
     <div class="content-card">
         <span class="status-badge">Add New to <span id="target-lang-label">Thai</span></span>
         <div style="margin-top:20px;"></div>
-        <input type="text" id="in-topic" placeholder="Category (e.g. Work, Food)" style="margin-bottom:12px;">
+        <input type="text" id="in-topic" placeholder="Category" style="margin-bottom:12px;">
         <input type="text" id="in-word" placeholder="Target Word" style="margin-bottom:12px;">
         <input type="text" id="in-mean" placeholder="Translation" style="margin-bottom:12px;">
-        <button class="submit-btn" onclick="submitNewWord()">SAVE TO CLOUD</button>
+        <button class="submit-btn" id="save-btn" onclick="submitNewWord()">SAVE TO CLOUD</button>
     </div>
 </div>
 
@@ -154,159 +142,142 @@
     let currentView = 'study';
     let selectedLeft = null;
     let gamePool = []; 
-    let wordsCleared = 0; 
-    let totalWords = 0;
 
     const fileMap = { 'Thai': 'Thai.json', 'Chinese': 'chinese.json', 'Korean': 'korea.json' };
     const { pinyin } = pinyinPro;
 
-    function speak(text, lang) {
-        if (!text) return;
-        window.speechSynthesis.cancel(); 
+    // Core Language Switcher (Optimized for Speed)
+    async function switchLang(lang) {
+        if(currentLang === lang && rawData) return;
+        currentLang = lang;
+        
+        // Instant UI feedback
+        document.getElementById('target-lang-label').innerText = lang;
+        document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.innerText === lang.toUpperCase()));
+        document.getElementById('status').innerText = "Loading...";
 
-        let displayText = text;
-        let speechText = text;
-
-        if (lang === 'Chinese') {
-            speechText = text.replace(/[^\u4e00-\u9fa5]/g, '');
-            if (!/[a-zA-Z]/.test(text)) {
-                displayText = `${speechText} (${pinyin(speechText)})`;
-            }
-        } else if (lang === 'Thai') {
-            speechText = text.replace(/[^\u0E00-\u0E7F]/g, '');
-        } else if (lang === 'Korean') {
-            speechText = text.replace(/[^\uAC00-\uD7AF\u1100-\u11FF]/g, '');
-        }
-
-        const toast = document.getElementById('audio-toast');
-        toast.innerText = displayText;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2000);
-
-        if (speechText.trim().length > 0) {
-            const msg = new SpeechSynthesisUtterance(speechText);
-            const codes = { 'Thai': 'th-TH', 'Chinese': 'zh-CN', 'Korean': 'ko-KR' };
-            msg.lang = codes[lang];
-            msg.rate = 0.9; 
-            window.speechSynthesis.speak(msg);
-        }
+        // Start both fetches, but prioritize JSON
+        fetchLocalJSON();
+        fetchCloudData();
     }
 
-    async function fetchData() {
+    async function fetchLocalJSON() {
         try {
-            const response = await fetch(`./${fileMap[currentLang]}?v=${new Date().getTime()}`);
+            const response = await fetch(`./${fileMap[currentLang]}?v=${Date.now()}`);
             const data = await response.json();
             rawData = Array.isArray(data) ? data : [data];
-            
+            populateChapters();
+            if(currentView === 'study') renderStudy();
+            if(currentView === 'game') resetGame();
+            document.getElementById('status').innerText = "Local Synced";
+        } catch (e) { console.error("JSON Error"); }
+    }
+
+    async function fetchCloudData() {
+        try {
             const cloudRes = await fetch(SCRIPT_URL);
             customData = await cloudRes.json();
-
-            populateChapters();
-            document.getElementById('status').innerText = "System Live";
-        } catch (e) { 
-            document.getElementById('status').innerText = "Sync Error"; 
-        }
+            document.getElementById('status').innerText = "Cloud Live";
+            if(currentView === 'star') renderStarList();
+        } catch (e) { document.getElementById('status').innerText = "Offline Mode"; }
     }
 
     function populateChapters() {
-        const studySelect = document.getElementById('study-chapter');
-        const gameSelect = document.getElementById('game-chapter');
-        if (!rawData) return;
-
-        const options = rawData.map((ch, i) => `<option value="${i}">${ch.Chapter_name || 'Chapter ' + (i+1)}</option>`).join('');
-        studySelect.innerHTML = options;
-        
-        // Add "My Saved Words" to Game dropdown
-        gameSelect.innerHTML = `<option value="cloud">⭐ My Saved Words</option>` + options;
-        
-        renderStudy();
-    }
-
-    async function switchLang(lang) {
-        currentLang = lang;
-        document.getElementById('target-lang-label').innerText = lang;
-        document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.innerText === lang.toUpperCase()));
-        await fetchData();
-        if(currentView === 'star') renderStarList();
-    }
-
-    function switchView(view) {
-        currentView = view;
-        const views = ['view-study', 'view-game', 'view-upload', 'view-star'];
-        views.forEach(v => document.getElementById(v).classList.add('hidden'));
-        document.getElementById(`view-${view}`).classList.remove('hidden');
-        
-        document.querySelectorAll('.nav-item').forEach(n => {
-            const label = n.querySelector('span').innerText.toLowerCase();
-            n.classList.toggle('active', label === (view === 'study' ? 'learn' : view === 'game' ? 'match' : view));
-        });
-
-        if(view === 'game') resetGame(); 
-        else if(view === 'star') renderStarList();
+        const sSel = document.getElementById('study-chapter');
+        const gSel = document.getElementById('game-chapter');
+        const opts = rawData.map((ch, i) => `<option value="${i}">${ch.Chapter_name || 'Chapter '+(i+1)}</option>`).join('');
+        sSel.innerHTML = opts;
+        gSel.innerHTML = `<option value="cloud">⭐ My Saved Words</option>` + opts;
     }
 
     function renderStudy() {
-        const index = document.getElementById('study-chapter').value || 0;
+        const idx = document.getElementById('study-chapter').value || 0;
         const mode = document.getElementById('study-mode').value;
         const display = document.getElementById('study-display');
-        const ch = rawData[index];
-        if(!ch) return;
-
+        if(!rawData || !rawData[idx]) return;
+        const ch = rawData[idx];
         display.innerHTML = `<span class="status-badge">${ch.Chapter_name}</span><div style="margin-top:20px;"></div>`;
         
         if (mode === 'vocab') {
             (ch.Vocabulary_List || "").split(',').forEach(v => {
                 const p = v.split('=').map(s => s.trim());
-                if(p.length >= 2) {
-                    display.innerHTML += `<div class="vocab-row" onclick="speak('${p[0]}', '${currentLang}')"><i class="fa-solid fa-volume-high"></i><span class="vocab-word">${p[0]}</span><span class="vocab-mean">${p[1]}</span></div>`;
-                }
+                if(p.length >= 2) display.innerHTML += `<div class="vocab-row" onclick="speak('${p[0]}', '${currentLang}')"><i class="fa-solid fa-volume-high"></i><span class="vocab-word">${p[0]}</span><span class="vocab-mean">${p[1]}</span></div>`;
             });
         } else if (mode === 'sentences') {
             (ch.Sentences || "").split(';').forEach(s => {
                 const p = s.split(':').map(i => i.trim());
-                if(p.length >= 2) {
-                    display.innerHTML += `<div class="sentence-box" onclick="speak('${p[0]}', '${currentLang}')"><div class="s-target">${p[0]}</div><div class="s-trans">${p[1]}</div></div>`;
-                }
+                if(p.length >= 2) display.innerHTML += `<div class="sentence-box" onclick="speak('${p[0]}', '${currentLang}')"><div class="s-target">${p[0]}</div><div class="s-trans">${p[1]}</div></div>`;
             });
         } else if (mode === 'paragraph') {
             display.innerHTML += `<div class="paragraph-text" onclick="speak(this.innerText, '${currentLang}')">${ch.Paragraph || "..."}</div>`;
         }
     }
 
+    // TTS & Auto-Pinyin
+    function speak(text, lang) {
+        window.speechSynthesis.cancel(); 
+        let dText = text, sText = text;
+
+        if (lang === 'Chinese') {
+            sText = text.replace(/[^\u4e00-\u9fa5]/g, '');
+            if (!/[a-zA-Z]/.test(text)) dText = `${sText} (${pinyin(sText)})`;
+        } else if (lang === 'Thai') sText = text.replace(/[^\u0E00-\u0E7F]/g, '');
+        else if (lang === 'Korean') sText = text.replace(/[^\uAC00-\uD7AF]/g, '');
+
+        const toast = document.getElementById('audio-toast');
+        toast.innerText = dText; toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+
+        if (sText.trim().length > 0) {
+            const msg = new SpeechSynthesisUtterance(sText);
+            msg.lang = { 'Thai': 'th-TH', 'Chinese': 'zh-CN', 'Korean': 'ko-KR' }[lang];
+            msg.rate = 0.9; 
+            window.speechSynthesis.speak(msg);
+        }
+    }
+
+    function switchView(view) {
+        currentView = view;
+        ['view-study', 'view-game', 'view-upload', 'view-star'].forEach(v => document.getElementById(v).classList.add('hidden'));
+        document.getElementById(`view-${view}`).classList.remove('hidden');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.innerText.toLowerCase().includes(view === 'study' ? 'learn' : view)));
+        if(view === 'game') resetGame(); 
+        if(view === 'star') renderStarList();
+    }
+
     function resetGame() {
-        const selection = document.getElementById('game-chapter').value;
-        if (selection === "cloud") {
+        const sel = document.getElementById('game-chapter').value;
+        if (sel === "cloud") {
             const filtered = customData.filter(item => item.lang === currentLang);
             if(filtered.length < 2) {
-                document.getElementById('game-display').innerHTML = `<p style='text-align:center; padding-top:100px; color:var(--text-light)'>Add at least 2 words to your list first!</p>`;
+                document.getElementById('game-display').innerHTML = `<p style='text-align:center; padding-top:100px;'>Add at least 2 words first!</p>`;
                 return;
             }
             gamePool = filtered.map(item => ({ t: item.target, e: item.trans }));
         } else {
-            const ch = rawData[selection || 0];
+            if(!rawData) return;
+            const ch = rawData[sel || 0];
             gamePool = (ch.Vocabulary_List || "").split(',').map(v => {
                 const p = v.split('=').map(s => s.trim());
                 return { t: p[0], e: p[1] };
             }).filter(x => x.t && x.e);
         }
-        totalWords = gamePool.length; wordsCleared = 0;
         renderGameRound();
     }
 
     function renderGameRound() {
         const display = document.getElementById('game-display');
         if (gamePool.length === 0) {
-            display.innerHTML = `<div style="text-align:center; padding-top:60px;"><h2>MASTERY COMPLETE</h2><button class="submit-btn" onclick="resetGame()">PLAY AGAIN</button></div>`;
+            display.innerHTML = `<div style="text-align:center; padding-top:60px;"><h2>COMPLETE</h2><button class="submit-btn" onclick="resetGame()">REPLAY</button></div>`;
             return;
         }
-        const currentRound = gamePool.slice(0, 5);
-        const leftSide = [...currentRound].sort(() => 0.5 - Math.random());
-        const rightSide = [...currentRound].sort(() => 0.5 - Math.random());
-        display.innerHTML = `<div class="progress-text">Progress: ${wordsCleared} / ${totalWords} Words</div><div class="grid" id="g"></div>`;
-        const g = document.getElementById('g');
-        leftSide.forEach((item, i) => {
-            g.innerHTML += `<div class="m-btn" data-v="${leftSide[i].t}" onclick="match(this, 'L')">${leftSide[i].e}</div>`;
-            g.innerHTML += `<div class="m-btn" data-v="${rightSide[i].t}" onclick="match(this, 'R')">${rightSide[i].t}</div>`;
+        const round = gamePool.slice(0, 5);
+        const left = [...round].sort(() => Math.random() - 0.5);
+        const right = [...round].sort(() => Math.random() - 0.5);
+        display.innerHTML = `<div class="grid" id="g"></div>`;
+        left.forEach((it, i) => {
+            document.getElementById('g').innerHTML += `<div class="m-btn" data-v="${left[i].t}" onclick="match(this, 'L')">${left[i].e}</div>`;
+            document.getElementById('g').innerHTML += `<div class="m-btn" data-v="${right[i].t}" onclick="match(this, 'R')">${right[i].t}</div>`;
         });
     }
 
@@ -315,18 +286,12 @@
         if(side === 'L') {
             document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('selected'));
             selectedLeft = btn; btn.classList.add('selected');
-        } else if(selectedLeft) {
-            if(selectedLeft.dataset.v === btn.dataset.v) {
-                speak(btn.dataset.v, currentLang);
-                selectedLeft.classList.add('matched'); btn.classList.add('matched');
-                selectedLeft = null;
-                if(document.querySelectorAll('.m-btn:not(.matched)').length === 0) {
-                    wordsCleared += Math.min(5, gamePool.length);
-                    gamePool = gamePool.slice(5); setTimeout(renderGameRound, 600);
-                }
-            } else {
-                btn.style.borderColor = "#ff7675";
-                setTimeout(() => btn.style.borderColor = "rgba(255,255,255,0.08)", 400);
+        } else if(selectedLeft && selectedLeft.dataset.v === btn.dataset.v) {
+            speak(btn.dataset.v, currentLang);
+            selectedLeft.classList.add('matched'); btn.classList.add('matched');
+            selectedLeft = null;
+            if(document.querySelectorAll('.m-btn:not(.matched)').length === 0) {
+                gamePool = gamePool.slice(5); setTimeout(renderGameRound, 600);
             }
         }
     }
@@ -335,28 +300,26 @@
         const display = document.getElementById('star-display');
         const filtered = customData.filter(item => item.lang === currentLang);
         display.innerHTML = `<span class="status-badge">My ${currentLang} List</span><div style="margin-top:20px;"></div>`;
-        if(filtered.length === 0) {
-            display.innerHTML += "<p style='text-align:center; padding-top:100px; color:var(--text-light)'>List is empty.</p>";
-            return;
-        }
+        if(filtered.length === 0) display.innerHTML += "<p style='text-align:center; padding-top:100px;'>Empty.</p>";
         filtered.reverse().forEach(item => {
-            display.innerHTML += `<div class="vocab-row" onclick="speak('${item.target}', '${currentLang}')"><i class="fa-solid fa-volume-high"></i><span style="font-size:10px; color:var(--accent); font-weight:800;">${item.topic.toUpperCase()}</span><span class="vocab-word">${item.target}</span><span class="vocab-mean">${item.trans}</span></div>`;
+            display.innerHTML += `<div class="vocab-row" onclick="speak('${item.target}', '${currentLang}')"><span class="vocab-word">${item.target}</span><span class="vocab-mean">${item.trans}</span></div>`;
         });
     }
 
     async function submitNewWord() {
-        const btn = document.querySelector('.submit-btn');
-        const payload = { lang: currentLang, topic: document.getElementById('in-topic').value || "General", target: document.getElementById('in-word').value, trans: document.getElementById('in-mean').value };
-        if(!payload.target || !payload.trans) return alert("Fill Word and Meaning");
-        btn.innerText = "SAVING..."; btn.disabled = true;
+        const payload = { lang: currentLang, topic: document.getElementById('in-topic').value, target: document.getElementById('in-word').value, trans: document.getElementById('in-mean').value };
+        if(!payload.target || !payload.trans) return;
+        document.getElementById('save-btn').innerText = "SAVING...";
         try {
             await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
             document.getElementById('in-word').value = ""; document.getElementById('in-mean').value = "";
-            await fetchData(); switchView('star');
-        } catch (e) { alert("Error saving"); } finally { btn.innerText = "SAVE TO CLOUD"; btn.disabled = false; }
+            fetchCloudData();
+            switchView('star');
+        } catch (e) { alert("Error"); }
+        document.getElementById('save-btn').innerText = "SAVE TO CLOUD";
     }
 
-    window.onload = fetchData;
+    window.onload = () => switchLang('Thai');
 </script>
 </body>
 </html>
