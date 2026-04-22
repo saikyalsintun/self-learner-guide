@@ -159,15 +159,26 @@
     const fileMap = { 'Thai': 'Thai.json', 'Chinese': 'chinese.json', 'Korean': 'korea.json' };
 
     // --- Audio Function ---
-    function speak(text, lang) {
-        if (!text) return;
-        window.speechSynthesis.cancel(); // Stop current speech
-        const msg = new SpeechSynthesisUtterance(text);
-        if (lang === 'Thai') msg.lang = 'th-TH';
-        else if (lang === 'Chinese') msg.lang = 'zh-CN';
-        else if (lang === 'Korean') msg.lang = 'ko-KR';
-        window.speechSynthesis.speak(msg);
+function speak(text, lang) {
+    if (!text) return;
+    window.speechSynthesis.cancel(); 
+    
+    let cleanText = text;
+
+    // If Chinese, remove English letters (Pinyin) so it only reads the Hanzi
+    if (lang === 'Chinese') {
+        // This removes A-Z, a-z, and extra spaces
+        cleanText = text.replace(/[A-Za-z]/g, '').trim();
     }
+
+    const msg = new SpeechSynthesisUtterance(cleanText);
+    
+    if (lang === 'Thai') msg.lang = 'th-TH';
+    else if (lang === 'Chinese') msg.lang = 'zh-CN';
+    else if (lang === 'Korean') msg.lang = 'ko-KR';
+    
+    window.speechSynthesis.speak(msg);
+}
 
     async function switchLang(lang) {
         currentLang = lang;
