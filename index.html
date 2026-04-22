@@ -43,12 +43,16 @@
             border: 1px solid rgba(255,255,255,0.05); min-height: 400px; 
             box-shadow: 0 20px 50px rgba(0,0,0,0.4);
         }
-        .vocab-row { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .vocab-row { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; position: relative; }
+        .vocab-row:active { background: rgba(255,255,255,0.02); }
         .vocab-word { font-size: 22px; font-weight: 600; color: #fff; display: block; }
         .vocab-mean { font-size: 14px; color: var(--text-light); }
-        .sentence-box { margin-bottom: 22px; padding-left: 18px; border-left: 4px solid var(--primary); }
+        .fa-volume-high { float: right; color: var(--primary); font-size: 14px; margin-top: 10px; opacity: 0.6; }
+        
+        .sentence-box { margin-bottom: 22px; padding-left: 18px; border-left: 4px solid var(--primary); cursor: pointer; }
         .s-target { font-size: 20px; font-weight: 600; color: #fff; }
         .s-trans { font-size: 14px; color: var(--text-light); font-style: italic; }
+        
         .paragraph-text { font-size: 20px; line-height: 2.1; color: #eee; white-space: pre-line; }
         .progress-text { font-size: 10px; font-weight: 800; color: var(--accent); letter-spacing: 2px; text-align: center; margin-bottom: 18px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -72,7 +76,6 @@
         .nav-item.active { color: var(--primary); }
         .hidden { display: none; }
         
-        /* New Styles for Input View */
         .input-group { margin-bottom: 15px; }
         .input-label { font-size: 10px; color: var(--accent); font-weight: 800; margin-bottom: 5px; display: block; }
         .submit-btn { 
@@ -91,7 +94,7 @@
 <div class="tabs-container">
     <div class="tab active" onclick="switchLang('Thai')">THAI</div>
     <div class="tab" onclick="switchLang('Chinese')">CHINESE</div>
-    <div class="tab" onclick="switchLang('Korea')">KOREA</div>
+    <div class="tab" onclick="switchLang('Korean')">KOREAN</div>
 </div>
 
 <div id="view-study" class="container">
@@ -145,7 +148,7 @@
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZdK3xJD4uSHxs6KKqNpx8XEj7fwNrodO3ldnrrdUzLv5tUosacAvmDRBq-u-tIaYk/exec";
     let rawData = null;
-    let customData = []; // Data from Google Sheets
+    let customData = []; 
     let currentLang = 'Thai';
     let currentView = 'study';
     let selectedLeft = null;
@@ -153,7 +156,18 @@
     let wordsCleared = 0; 
     let totalWords = 0;
 
-    const fileMap = { 'Thai': 'Thai.json', 'Chinese': 'chinese.json', 'Korea': 'korea.json' };
+    const fileMap = { 'Thai': 'Thai.json', 'Chinese': 'chinese.json', 'Korean': 'korea.json' };
+
+    // --- Audio Function ---
+    function speak(text, lang) {
+        if (!text) return;
+        window.speechSynthesis.cancel(); // Stop current speech
+        const msg = new SpeechSynthesisUtterance(text);
+        if (lang === 'Thai') msg.lang = 'th-TH';
+        else if (lang === 'Chinese') msg.lang = 'zh-CN';
+        else if (lang === 'Korean') msg.lang = 'ko-KR';
+        window.speechSynthesis.speak(msg);
+    }
 
     async function switchLang(lang) {
         currentLang = lang;
@@ -181,17 +195,17 @@
 
     async function fetchData() {
         try {
-            // 1. Fetch static JSON from GitHub
+            // 1. Static Files
             const response = await fetch(`./${fileMap[currentLang]}?v=${new Date().getTime()}`);
             const data = await response.json();
             rawData = Array.isArray(data) ? data : [data];
-
-            // 2. Fetch custom data from Google Sheets
+            populateChapters();
+            
+            // 2. Cloud Data
             const cloudRes = await fetch(SCRIPT_URL);
             customData = await cloudRes.json();
 
             document.getElementById('status').innerText = "System Live";
-            populateChapters();
         } catch (e) { 
             console.error(e);
             document.getElementById('status').innerText = "Sync Error"; 
@@ -200,9 +214,7 @@
 
     function renderStarList() {
         const display = document.getElementById('star-display');
-        // Filter cloud data by active language tab
         const filtered = customData.filter(item => item.lang === currentLang);
-        
         display.innerHTML = `<span class="status-badge">My ${currentLang} List</span><div style="margin-top:20px;"></div>`;
         
         if(filtered.length === 0) {
@@ -212,7 +224,8 @@
 
         filtered.reverse().forEach(item => {
             display.innerHTML += `
-                <div class="vocab-row">
+                <div class="vocab-row" onclick="speak('${item.target}', '${currentLang}')">
+                    <i class="fa-solid fa-volume-high"></i>
                     <span style="font-size:10px; color:var(--accent); font-weight:800;">${item.topic.toUpperCase()}</span>
                     <span class="vocab-word">${item.target}</span>
                     <span class="vocab-mean">${item.trans}</span>
@@ -230,7 +243,6 @@
         };
 
         if(!payload.target || !payload.trans) return alert("Please fill Word and Meaning");
-
         btn.innerText = "SAVING...";
         btn.disabled = true;
 
@@ -238,27 +250,17 @@
             await fetch(SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors",
-                cache: "no-cache",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
-            
-            // Clear inputs
             document.getElementById('in-word').value = "";
             document.getElementById('in-mean').value = "";
-            
             alert("Saved successfully!");
-            await fetchData(); // Refresh local cache
-            switchView('star'); // Jump to see the list
-        } catch (e) {
-            alert("Error saving data");
-        } finally {
-            btn.innerText = "SAVE TO CLOUD";
-            btn.disabled = false;
-        }
+            await fetchData();
+            switchView('star');
+        } catch (e) { alert("Error saving"); }
+        finally { btn.innerText = "SAVE TO CLOUD"; btn.disabled = false; }
     }
 
-    // --- REMAINDER OF YOUR ORIGINAL LOGIC (Unchanged) ---
     function populateChapters() {
         const studySelect = document.getElementById('study-chapter');
         const gameSelect = document.getElementById('game-chapter');
@@ -277,20 +279,34 @@
         if(!rawData || !rawData[index]) return;
         const ch = rawData[index];
         display.innerHTML = `<span style="font-size:10px; color:var(--primary); font-weight:800; letter-spacing:1px;">${ch.Chapter_name}</span><div style="margin-top:20px;"></div>`;
+        
         if (mode === 'vocab') {
             const list = ch.Vocabulary_List || "";
             list.split(',').forEach(v => {
                 const p = v.split('=').map(s => s.trim());
-                if(p.length >= 2) display.innerHTML += `<div class="vocab-row"><span class="vocab-word">${p[0]}</span><span class="vocab-mean">${p[1]}</span></div>`;
+                if(p.length >= 2) {
+                    display.innerHTML += `
+                    <div class="vocab-row" onclick="speak('${p[0]}', '${currentLang}')">
+                        <i class="fa-solid fa-volume-high"></i>
+                        <span class="vocab-word">${p[0]}</span>
+                        <span class="vocab-mean">${p[1]}</span>
+                    </div>`;
+                }
             });
         } else if (mode === 'sentences') {
             const sentences = ch.Sentences || "";
             sentences.split(';').forEach(s => {
                 const p = s.split(':').map(i => i.trim());
-                if(p.length >= 2) display.innerHTML += `<div class="sentence-box"><div class="s-target">${p[0]}</div><div class="s-trans">${p[1]}</div></div>`;
+                if(p.length >= 2) {
+                    display.innerHTML += `
+                    <div class="sentence-box" onclick="speak('${p[0]}', '${currentLang}')">
+                        <div class="s-target">${p[0]}</div>
+                        <div class="s-trans">${p[1]}</div>
+                    </div>`;
+                }
             });
         } else if (mode === 'paragraph') {
-            display.innerHTML += `<div class="paragraph-text">${ch.Paragraph || "No text available."}</div>`;
+            display.innerHTML += `<div class="paragraph-text" onclick="speak(this.innerText, '${currentLang}')">${ch.Paragraph || "No text available."}</div>`;
         }
     }
 
@@ -334,6 +350,7 @@
         } else {
             if(!selectedLeft) return;
             if(selectedLeft.dataset.v === btn.dataset.v) {
+                speak(btn.dataset.v, currentLang);
                 selectedLeft.classList.add('matched'); btn.classList.add('matched');
                 selectedLeft = null;
                 if(document.querySelectorAll('.m-btn:not(.matched)').length === 0) {
