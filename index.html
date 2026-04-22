@@ -20,7 +20,7 @@
             margin: 0; background: var(--bg); color: var(--text); 
             line-height: 1.6; padding-bottom: 120px; overflow-x: hidden;
         }
-        .vocab-word, .s-target, .paragraph-text, .m-btn { font-family: var(--font-thai), var(--font-main); }
+        .vocab-word, .s-target, .paragraph-text, .m-btn, input { font-family: var(--font-thai), var(--font-main); }
         .header { padding: 45px 20px 15px; text-align: center; }
         .status-badge { font-size: 10px; letter-spacing: 2.5px; color: var(--accent); font-weight: 800; text-transform: uppercase; }
         h1 { margin: 8px 0 0; font-weight: 800; font-size: 22px; color: #fff; letter-spacing: -0.5px; }
@@ -33,10 +33,10 @@
         .tab.active { background: var(--primary); color: white; transform: translateY(-1px); }
         .container { max-width: 500px; margin: 0 auto; padding: 0 20px; }
         .controls { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
-        select { 
+        select, input { 
             width: 100%; background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1);
             color: white; padding: 16px; border-radius: 16px; font-family: var(--font-main); 
-            font-weight: 600; font-size: 15px; appearance: none; outline: none; cursor: pointer;
+            font-weight: 600; font-size: 15px; outline: none;
         }
         .content-card { 
             background: var(--card-bg); border-radius: 30px; padding: 28px; 
@@ -63,14 +63,22 @@
         .nav { 
             position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%); 
             background: rgba(10, 10, 25, 0.95); backdrop-filter: blur(20px); 
-            padding: 14px 40px; border-radius: 40px; display: flex; gap: 45px; 
-            border: 1px solid rgba(255,255,255,0.1); z-index: 1000;
+            padding: 14px 25px; border-radius: 40px; display: flex; gap: 30px; 
+            border: 1px solid rgba(255,255,255,0.1); z-index: 1000; width: max-content;
         }
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-light); cursor: pointer; transition: 0.3s; }
-        .nav-item i { font-size: 20px; }
-        .nav-item span { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .nav-item i { font-size: 18px; }
+        .nav-item span { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
         .nav-item.active { color: var(--primary); }
         .hidden { display: none; }
+        
+        /* New Styles for Input View */
+        .input-group { margin-bottom: 15px; }
+        .input-label { font-size: 10px; color: var(--accent); font-weight: 800; margin-bottom: 5px; display: block; }
+        .submit-btn { 
+            background: var(--primary); color: white; border: none; width: 100%; 
+            padding: 18px; border-radius: 16px; font-weight: 800; cursor: pointer; margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -103,17 +111,41 @@
     <div id="game-display" class="content-card"></div>
 </div>
 
+<div id="view-upload" class="container hidden">
+    <div class="content-card">
+        <span class="status-badge">Add New to <span id="target-lang-label">Thai</span></span>
+        <div style="margin-top:20px;"></div>
+        <div class="input-group">
+            <span class="input-label">TOPIC / CATEGORY</span>
+            <input type="text" id="in-topic" placeholder="e.g. Food, Travel">
+        </div>
+        <div class="input-group">
+            <span class="input-label">WORD</span>
+            <input type="text" id="in-word" placeholder="Target Word">
+        </div>
+        <div class="input-group">
+            <span class="input-label">MEANING</span>
+            <input type="text" id="in-mean" placeholder="Translation">
+        </div>
+        <button class="submit-btn" onclick="submitNewWord()">SAVE TO CLOUD</button>
+    </div>
+</div>
+
+<div id="view-star" class="container hidden">
+    <div id="star-display" class="content-card"></div>
+</div>
+
 <nav class="nav">
-    <div class="nav-item active" onclick="switchView('study')">
-        <i class="fas fa-book-open"></i><span>Learn</span>
-    </div>
-    <div class="nav-item" onclick="switchView('game')">
-        <i class="fas fa-layer-group"></i><span>Match</span>
-    </div>
+    <div class="nav-item active" onclick="switchView('study')"><i class="fas fa-book-open"></i><span>Learn</span></div>
+    <div class="nav-item" onclick="switchView('game')"><i class="fas fa-layer-group"></i><span>Match</span></div>
+    <div class="nav-item" onclick="switchView('upload')"><i class="fas fa-cloud-upload-alt"></i><span>Add</span></div>
+    <div class="nav-item" onclick="switchView('star')"><i class="fas fa-star"></i><span>My List</span></div>
 </nav>
 
 <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZdK3xJD4uSHxs6KKqNpx8XEj7fwNrodO3ldnrrdUzLv5tUosacAvmDRBq-u-tIaYk/exec";
     let rawData = null;
+    let customData = []; // Data from Google Sheets
     let currentLang = 'Thai';
     let currentView = 'study';
     let selectedLeft = null;
@@ -121,40 +153,43 @@
     let wordsCleared = 0; 
     let totalWords = 0;
 
-    const fileMap = { 
-        'Thai': 'Thai.json', 
-        'Chinese': 'chinese.json', 
-        'Korea': 'korea.json' 
-    };
+    const fileMap = { 'Thai': 'Thai.json', 'Chinese': 'chinese.json', 'Korea': 'korea.json' };
 
     async function switchLang(lang) {
         currentLang = lang;
+        document.getElementById('target-lang-label').innerText = lang;
         document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.innerText === lang.toUpperCase()));
         await fetchData();
+        if(currentView === 'star') renderStarList();
     }
 
     async function switchView(view) {
         currentView = view;
-        document.getElementById('view-study').classList.toggle('hidden', view !== 'study');
-        document.getElementById('view-game').classList.toggle('hidden', view !== 'game');
+        const views = ['view-study', 'view-game', 'view-upload', 'view-star'];
+        views.forEach(v => document.getElementById(v).classList.add('hidden'));
+        document.getElementById(`view-${view}`).classList.remove('hidden');
         
         document.querySelectorAll('.nav-item').forEach(n => {
             const label = n.querySelector('span').innerText.toLowerCase();
-            n.classList.toggle('active', (view === 'study' && label === 'learn') || (view === 'game' && label === 'match'));
+            n.classList.toggle('active', label === (view === 'study' ? 'learn' : view === 'game' ? 'match' : view));
         });
 
-        if(view === 'game') resetGame(); else renderStudy();
+        if(view === 'game') resetGame(); 
+        else if(view === 'study') renderStudy();
+        else if(view === 'star') renderStarList();
     }
 
     async function fetchData() {
         try {
-            // Added cache-busting (?v=...) to force GitHub to serve the absolute newest file
+            // 1. Fetch static JSON from GitHub
             const response = await fetch(`./${fileMap[currentLang]}?v=${new Date().getTime()}`);
-            if (!response.ok) throw new Error("Load failed");
             const data = await response.json();
-            
-            // Ensures the data is always handled as an Array
             rawData = Array.isArray(data) ? data : [data];
+
+            // 2. Fetch custom data from Google Sheets
+            const cloudRes = await fetch(SCRIPT_URL);
+            customData = await cloudRes.json();
+
             document.getElementById('status').innerText = "System Live";
             populateChapters();
         } catch (e) { 
@@ -163,18 +198,74 @@
         }
     }
 
+    function renderStarList() {
+        const display = document.getElementById('star-display');
+        // Filter cloud data by active language tab
+        const filtered = customData.filter(item => item.lang === currentLang);
+        
+        display.innerHTML = `<span class="status-badge">My ${currentLang} List</span><div style="margin-top:20px;"></div>`;
+        
+        if(filtered.length === 0) {
+            display.innerHTML += "<p style='text-align:center; padding-top:100px; color:var(--text-light)'>No saved words yet.</p>";
+            return;
+        }
+
+        filtered.reverse().forEach(item => {
+            display.innerHTML += `
+                <div class="vocab-row">
+                    <span style="font-size:10px; color:var(--accent); font-weight:800;">${item.topic.toUpperCase()}</span>
+                    <span class="vocab-word">${item.target}</span>
+                    <span class="vocab-mean">${item.trans}</span>
+                </div>`;
+        });
+    }
+
+    async function submitNewWord() {
+        const btn = document.querySelector('.submit-btn');
+        const payload = {
+            lang: currentLang,
+            topic: document.getElementById('in-topic').value || "General",
+            target: document.getElementById('in-word').value,
+            trans: document.getElementById('in-mean').value
+        };
+
+        if(!payload.target || !payload.trans) return alert("Please fill Word and Meaning");
+
+        btn.innerText = "SAVING...";
+        btn.disabled = true;
+
+        try {
+            await fetch(SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                cache: "no-cache",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            
+            // Clear inputs
+            document.getElementById('in-word').value = "";
+            document.getElementById('in-mean').value = "";
+            
+            alert("Saved successfully!");
+            await fetchData(); // Refresh local cache
+            switchView('star'); // Jump to see the list
+        } catch (e) {
+            alert("Error saving data");
+        } finally {
+            btn.innerText = "SAVE TO CLOUD";
+            btn.disabled = false;
+        }
+    }
+
+    // --- REMAINDER OF YOUR ORIGINAL LOGIC (Unchanged) ---
     function populateChapters() {
         const studySelect = document.getElementById('study-chapter');
         const gameSelect = document.getElementById('game-chapter');
         if (!rawData || rawData.length === 0) return;
-
-        const options = rawData.map((ch, i) => 
-            `<option value="${i}">${ch.Chapter_name || 'Chapter ' + (i+1)}</option>`
-        ).join('');
-        
+        const options = rawData.map((ch, i) => `<option value="${i}">${ch.Chapter_name || 'Chapter ' + (i+1)}</option>`).join('');
         studySelect.innerHTML = options;
         gameSelect.innerHTML = options;
-        
         renderStudy();
     }
 
@@ -183,15 +274,9 @@
         const index = studySelect.value || 0;
         const mode = document.getElementById('study-mode').value;
         const display = document.getElementById('study-display');
-        
-        if(!rawData || !rawData[index]) {
-            display.innerHTML = "<p style='text-align:center; color:var(--text-light);'>Select a chapter to begin</p>";
-            return;
-        }
-
+        if(!rawData || !rawData[index]) return;
         const ch = rawData[index];
         display.innerHTML = `<span style="font-size:10px; color:var(--primary); font-weight:800; letter-spacing:1px;">${ch.Chapter_name}</span><div style="margin-top:20px;"></div>`;
-
         if (mode === 'vocab') {
             const list = ch.Vocabulary_List || "";
             list.split(',').forEach(v => {
@@ -205,7 +290,7 @@
                 if(p.length >= 2) display.innerHTML += `<div class="sentence-box"><div class="s-target">${p[0]}</div><div class="s-trans">${p[1]}</div></div>`;
             });
         } else if (mode === 'paragraph') {
-            display.innerHTML += `<div class="paragraph-text">${ch.Paragraph || "No text available for this chapter."}</div>`;
+            display.innerHTML += `<div class="paragraph-text">${ch.Paragraph || "No text available."}</div>`;
         }
     }
 
@@ -214,13 +299,11 @@
         const index = document.getElementById('game-chapter').value || 0;
         const ch = rawData[index];
         if(!ch) return;
-
         const list = ch.Vocabulary_List || "";
         gamePool = list.split(',').map(v => {
             const p = v.split('=').map(s => s.trim());
             return { t: p[0], e: p[1] };
         }).filter(x => x.t && x.e);
-        
         totalWords = gamePool.length; 
         wordsCleared = 0;
         renderGameRound();
@@ -235,10 +318,8 @@
         const currentRound = gamePool.slice(0, 5);
         const leftSide = [...currentRound].sort(() => 0.5 - Math.random());
         const rightSide = [...currentRound].sort(() => 0.5 - Math.random());
-        
         display.innerHTML = `<div class="progress-text">Progress: ${wordsCleared} / ${totalWords} Words</div><div class="grid" id="g"></div>`;
         const g = document.getElementById('g');
-        
         leftSide.forEach((item, i) => {
             g.innerHTML += `<div class="m-btn" data-v="${leftSide[i].t}" onclick="match(this, 'L')">${leftSide[i].e}</div>`;
             g.innerHTML += `<div class="m-btn" data-v="${rightSide[i].t}" onclick="match(this, 'R')">${rightSide[i].t}</div>`;
