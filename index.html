@@ -165,21 +165,33 @@ function speak(text, lang) {
     
     let cleanText = text;
 
-    // If Chinese, remove English letters (Pinyin) so it only reads the Hanzi
     if (lang === 'Chinese') {
-        // This removes A-Z, a-z, and extra spaces
-        cleanText = text.replace(/[A-Za-z]/g, '').trim();
+        // Keep ONLY Chinese characters (Hanzi), remove Pinyin, English, and brackets
+        cleanText = text.replace(/[^\u4e00-\u9fa5]/g, '');
+    } 
+    else if (lang === 'Thai') {
+        // Keep ONLY Thai characters, remove English/Phonetics
+        cleanText = text.replace(/[^\u0E00-\u0E7F]/g, '');
+    }
+    else if (lang === 'Korean') {
+        // Keep ONLY Hangul, remove English/Romanization
+        cleanText = text.replace(/[^\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/g, '');
     }
 
-    const msg = new SpeechSynthesisUtterance(cleanText);
-    
-    if (lang === 'Thai') msg.lang = 'th-TH';
-    else if (lang === 'Chinese') msg.lang = 'zh-CN';
-    else if (lang === 'Korean') msg.lang = 'ko-KR';
-    
-    window.speechSynthesis.speak(msg);
+    // Only speak if we actually have text left after cleaning
+    if (cleanText.trim().length > 0) {
+        const msg = new SpeechSynthesisUtterance(cleanText);
+        
+        if (lang === 'Thai') msg.lang = 'th-TH';
+        else if (lang === 'Chinese') msg.lang = 'zh-CN';
+        else if (lang === 'Korean') msg.lang = 'ko-KR';
+        
+        // Slightly slow down the speed for better learning (0.9 is 90% speed)
+        msg.rate = 0.9; 
+        
+        window.speechSynthesis.speak(msg);
+    }
 }
-
     async function switchLang(lang) {
         currentLang = lang;
         document.getElementById('target-lang-label').innerText = lang;
