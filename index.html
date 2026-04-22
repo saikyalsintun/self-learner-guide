@@ -6,6 +6,8 @@
     <title>Polyglot Flow</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://unpkg.com/pinyin-pro"></script>
 
     <style>
         :root {
@@ -44,7 +46,6 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.4);
         }
         .vocab-row { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; position: relative; }
-        .vocab-row:active { background: rgba(255,255,255,0.02); }
         .vocab-word { font-size: 22px; font-weight: 600; color: #fff; display: block; }
         .vocab-mean { font-size: 14px; color: var(--text-light); }
         .fa-volume-high { float: right; color: var(--primary); font-size: 14px; margin-top: 10px; opacity: 0.6; }
@@ -74,6 +75,7 @@
         }
         .m-btn.selected { background: var(--primary); transform: scale(0.97); }
         .m-btn.matched { opacity: 0; pointer-events: none; transform: scale(0.8); }
+        
         .nav { 
             position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%); 
             background: rgba(10, 10, 25, 0.95); backdrop-filter: blur(20px); 
@@ -169,34 +171,41 @@
     let totalWords = 0;
 
     const fileMap = { 'Thai': 'Thai.json', 'Chinese': 'chinese.json', 'Korean': 'korea.json' };
+    const { pinyin } = pinyinPro; // Initialize the Pinyin library
 
-    // --- Audio Function with Popup and Dual-Sound Fix ---
+    // --- Core Audio & Logic Function ---
     function speak(text, lang) {
         if (!text) return;
         window.speechSynthesis.cancel(); 
 
-        // 1. Show the Popup with Full Text (Pinyin included)
+        let displayText = text;
+        let speechText = text;
+
+        // 1. Language Specific Filtering & Auto-Generation
+        if (lang === 'Chinese') {
+            // Filter audio to Hanzi ONLY
+            speechText = text.replace(/[^\u4e00-\u9fa5]/g, '');
+            // Auto-Pinyin if missing English letters
+            if (!/[a-zA-Z]/.test(text)) {
+                displayText = `${speechText} (${pinyin(speechText)})`;
+            }
+        } else if (lang === 'Thai') {
+            speechText = text.replace(/[^\u0E00-\u0E7F]/g, '');
+        } else if (lang === 'Korean') {
+            speechText = text.replace(/[^\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/g, '');
+        }
+
+        // 2. Visual Toast Feedback
         const toast = document.getElementById('audio-toast');
-        toast.innerText = text;
+        toast.innerText = displayText;
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 2000);
 
-        // 2. Clean text for Voice Engine (Native Only)
-        let cleanText = text;
-        if (lang === 'Chinese') {
-            cleanText = text.replace(/[^\u4e00-\u9fa5]/g, '');
-        } else if (lang === 'Thai') {
-            cleanText = text.replace(/[^\u0E00-\u0E7F]/g, '');
-        } else if (lang === 'Korean') {
-            cleanText = text.replace(/[^\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/g, '');
-        }
-
-        // 3. Trigger Voice
-        if (cleanText.trim().length > 0) {
-            const msg = new SpeechSynthesisUtterance(cleanText);
-            if (lang === 'Thai') msg.lang = 'th-TH';
-            else if (lang === 'Chinese') msg.lang = 'zh-CN';
-            else if (lang === 'Korean') msg.lang = 'ko-KR';
+        // 3. TTS Trigger
+        if (speechText.trim().length > 0) {
+            const msg = new SpeechSynthesisUtterance(speechText);
+            const langCodes = { 'Thai': 'th-TH', 'Chinese': 'zh-CN', 'Korean': 'ko-KR' };
+            msg.lang = langCodes[lang];
             msg.rate = 0.9; 
             window.speechSynthesis.speak(msg);
         }
@@ -237,7 +246,6 @@
             customData = await cloudRes.json();
             document.getElementById('status').innerText = "System Live";
         } catch (e) { 
-            console.error(e);
             document.getElementById('status').innerText = "Sync Error"; 
         }
     }
