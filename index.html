@@ -46,7 +46,6 @@
         .vocab-row { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
         .vocab-word { font-size: 22px; font-weight: 600; color: #fff; display: block; }
         .vocab-mean { font-size: 14px; color: var(--text-light); }
-        .category-header { margin-top: 25px; color: var(--accent); font-weight: 800; font-size: 12px; text-transform: uppercase; border-bottom: 1px solid var(--primary); padding-bottom: 5px; margin-bottom: 10px; }
 
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .m-btn { 
@@ -55,7 +54,7 @@
             min-height: 75px; display: flex; align-items: center; justify-content: center; text-align: center; transition: 0.2s;
         }
         .m-btn.selected { background: var(--primary); border-color: var(--accent); }
-        .m-btn.matched { opacity: 0.1; pointer-events: none; border-color: transparent; }
+        .m-btn.matched { opacity: 0.1; pointer-events: none; }
         .m-btn.error { border-color: var(--danger); background: rgba(255, 71, 87, 0.1); }
 
         .nav { 
@@ -75,7 +74,7 @@
 <body>
 
 <div class="header">
-    <div class="status-badge" id="status">Syncing...</div>
+    <div class="status-badge" id="status">Connecting...</div>
     <h1>Polyglot Flow</h1>
 </div>
 
@@ -99,12 +98,12 @@
 
 <div id="view-upload" class="container hidden">
     <div class="content-card">
-        <span class="status-badge">Add Word</span>
+        <span class="status-badge">Add New Word</span>
         <div style="margin-top:20px;"></div>
         <select id="select-topic" onchange="toggleTopicInput()" style="margin-bottom:12px;"></select>
-        <input type="text" id="in-topic" placeholder="Category Name" class="hidden" style="margin-bottom:12px;">
-        <input type="text" id="in-word" placeholder="Word (e.g. 征求)" style="margin-bottom:12px;">
-        <input type="text" id="in-mean" placeholder="Translation (e.g. Seeking)" style="margin-bottom:12px;">
+        <input type="text" id="in-topic" placeholder="New Category Name" class="hidden" style="margin-bottom:12px;">
+        <input type="text" id="in-word" placeholder="Word" style="margin-bottom:12px;">
+        <input type="text" id="in-mean" placeholder="Translation" style="margin-bottom:12px;">
         <button class="submit-btn" id="save-btn" onclick="submitNewWord()">SAVE TO CLOUD</button>
     </div>
 </div>
@@ -121,14 +120,14 @@
 </nav>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/library/d/1G5QZ1kGqjskMxJa4dTjOFcHCukAN8hg3vYJvsLSWINPcb4AxYmzSArC1/1"; 
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZdK3xJD4uSHxs6KKqNpx8XEj7fwNrodO3ldnrrdUzLv5tUosacAvmDRBq-u-tIaYk/exec"; 
+
     let cloudData = []; 
     let currentLang = 'Thai';
     let currentView = 'study';
     let selectedLeft = null;
     let gamePool = []; 
 
-    // INITIAL LOAD
     window.onload = () => switchLang('Thai');
 
     async function switchLang(lang) {
@@ -142,62 +141,50 @@
         try {
             const res = await fetch(SCRIPT_URL);
             cloudData = await res.json();
-            
             populateChapters();
             updateTopicDropdown();
-            
             document.getElementById('status').innerText = "Cloud Live";
-            
             if(currentView === 'study') renderStudy();
             if(currentView === 'history') renderHistory();
-        } catch (e) { document.getElementById('status').innerText = "Offline"; }
+        } catch (e) { 
+            document.getElementById('status').innerText = "Sync Failed";
+            console.error(e);
+        }
     }
 
     function populateChapters() {
         const sSel = document.getElementById('study-chapter');
         const gSel = document.getElementById('game-chapter');
-        
-        const topics = [...new Set(cloudData
-            .filter(i => i.lang === currentLang && i.type === 'vocab')
-            .map(i => i.topic))];
-        
+        const topics = [...new Set(cloudData.filter(i => i.lang === currentLang && i.type === 'vocab').map(i => i.topic))];
         let opts = topics.map(t => `<option value="${t}">${t}</option>`).join('');
-        sSel.innerHTML = opts || '<option>No Topics Found</option>';
-        gSel.innerHTML = `<option value="all">🔥 All Categories</option>` + opts;
+        sSel.innerHTML = opts || '<option>No Data Found</option>';
+        gSel.innerHTML = `<option value="all">Mixed Quiz</option>` + opts;
     }
 
     function renderStudy() {
         const topic = document.getElementById('study-chapter').value;
         const display = document.getElementById('study-display');
         const filtered = cloudData.filter(i => i.lang === currentLang && i.topic === topic && i.type === 'vocab');
-
         let html = `<span class="status-badge">${topic}</span><div style="margin-top:20px;"></div>`;
-        if(filtered.length === 0) html += `<p>No words here.</p>`;
-        
         filtered.forEach(i => {
             html += `<div class="vocab-row" onclick="speak('${i.target}', '${currentLang}')">
                         <span class="vocab-word">${i.target}</span>
                         <span class="vocab-mean">${i.trans}</span>
                      </div>`;
         });
-        display.innerHTML = html;
+        display.innerHTML = html || "<p style='text-align:center;'>No words in this category.</p>";
     }
 
     function resetGame() {
         const sel = document.getElementById('game-chapter').value;
-        let source = [];
-        
-        if (sel === "all") {
-            source = cloudData.filter(i => i.lang === currentLang && i.type === 'vocab');
-        } else {
-            source = cloudData.filter(i => i.lang === currentLang && i.topic === sel && i.type === 'vocab');
-        }
+        let source = (sel === "all") 
+            ? cloudData.filter(i => i.lang === currentLang && i.type === 'vocab')
+            : cloudData.filter(i => i.lang === currentLang && i.topic === sel && i.type === 'vocab');
         
         if(source.length < 2) {
-            document.getElementById('game-display').innerHTML = `<div style="text-align:center; padding-top:50px;">Add more words to play!</div>`;
+            document.getElementById('game-display').innerHTML = "<p style='text-align:center; padding-top:50px;'>Need at least 2 words to play.</p>";
             return;
         }
-
         gamePool = [...source].sort(() => Math.random() - 0.5);
         renderGameRound();
     }
@@ -206,51 +193,35 @@
         const display = document.getElementById('game-display');
         selectedLeft = null;
         if (gamePool.length === 0) {
-            display.innerHTML = `<div style="text-align:center; padding-top:60px;"><h2>COMPLETE!</h2><button class="submit-btn" onclick="resetGame()">PLAY AGAIN</button></div>`;
+            display.innerHTML = `<div style="text-align:center; padding-top:60px;"><h2>Great Job!</h2><button class="submit-btn" onclick="resetGame()">Play Again</button></div>`;
             return;
         }
-
         const currentRound = gamePool.splice(0, 5); 
         const left = [...currentRound].sort(() => Math.random() - 0.5);
         const right = [...currentRound].sort(() => Math.random() - 0.5);
-
         display.innerHTML = `<div class="grid" id="g-container"></div>`;
         left.forEach((it, idx) => {
             const rItem = right[idx];
-            // Left column (Translations)
             document.getElementById('g-container').innerHTML += `<div class="m-btn" data-v="${it.target}" data-e="${it.trans}" data-topic="${it.topic}" onclick="match(this, 'L')">${it.trans}</div>`;
-            // Right column (Target words)
             document.getElementById('g-container').innerHTML += `<div class="m-btn" data-v="${rItem.target}" onclick="match(this, 'R')">${rItem.target}</div>`;
         });
     }
 
-    async function match(btn, side) {
+    function match(btn, side) {
         if(btn.classList.contains('matched')) return;
-        
         if(side === 'L') {
             document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('selected'));
-            selectedLeft = btn; 
-            btn.classList.add('selected');
+            selectedLeft = btn; btn.classList.add('selected');
         } else if(selectedLeft) {
             if(selectedLeft.dataset.v === btn.innerText) {
                 speak(btn.innerText, currentLang);
-                selectedLeft.classList.add('matched'); 
-                btn.classList.add('matched');
+                selectedLeft.classList.add('matched'); btn.classList.add('matched');
                 selectedLeft = null;
-                if(document.querySelectorAll('.m-btn:not(.matched)').length === 0) {
-                    setTimeout(renderGameRound, 600);
-                }
+                if(document.querySelectorAll('.m-btn:not(.matched)').length === 0) setTimeout(renderGameRound, 600);
             } else {
                 btn.classList.add('error');
                 setTimeout(() => btn.classList.remove('error'), 500);
-                // Log wrong answer to History
-                const payload = { 
-                    type: 'wrong', 
-                    lang: currentLang, 
-                    topic: selectedLeft.dataset.topic, 
-                    target: selectedLeft.dataset.v, 
-                    trans: selectedLeft.dataset.e 
-                };
+                const payload = { type: 'wrong', lang: currentLang, topic: selectedLeft.dataset.topic, target: selectedLeft.dataset.v, trans: selectedLeft.dataset.e };
                 fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
             }
         }
@@ -259,18 +230,14 @@
     function renderHistory() {
         const display = document.getElementById('history-display');
         const filtered = cloudData.filter(i => i.lang === currentLang && i.type === 'wrong');
-        display.innerHTML = `<span class="status-badge">Mistakes to Review</span><div style="margin-top:20px;"></div>`;
-        
-        if(filtered.length === 0) {
-            display.innerHTML += `<p style="text-align:center; padding:20px;">No mistakes yet! Keep it up.</p>`;
-        } else {
-            filtered.reverse().forEach(i => {
-                display.innerHTML += `<div class="vocab-row" onclick="speak('${i.target}', '${currentLang}')">
-                    <span class="vocab-word">${i.target}</span>
-                    <span class="vocab-mean">${i.trans} <small style="color:var(--primary)">[${i.topic}]</small></span>
-                </div>`;
-            });
-        }
+        let html = `<span class="status-badge">Recent Mistakes</span><div style="margin-top:20px;"></div>`;
+        if(filtered.length === 0) html += "<p style='text-align:center;'>No mistakes recorded!</p>";
+        filtered.reverse().slice(0, 50).forEach(i => {
+            html += `<div class="vocab-row" onclick="speak('${i.target}', '${currentLang}')">
+                <span class="vocab-word">${i.target}</span><span class="vocab-mean">${i.trans} <small>(${i.topic})</small></span>
+            </div>`;
+        });
+        display.innerHTML = html;
     }
 
     function switchView(view) {
@@ -310,21 +277,11 @@
         const i = document.getElementById('in-topic').value;
         const target = document.getElementById('in-word').value;
         const trans = document.getElementById('in-mean').value;
-        
-        if(!target || !trans) return alert("Fill all fields");
-        
-        const payload = { 
-            lang: currentLang, 
-            topic: s === "NEW" ? i : s, 
-            target: target, 
-            trans: trans 
-        };
-        
-        document.getElementById('save-btn').innerText = "SAVING...";
+        if(!target || !trans) { alert("Please enter both word and translation"); return; }
+        const payload = { lang: currentLang, topic: s === "NEW" ? i : s, target: target, trans: trans };
+        document.getElementById('save-btn').innerText = "Saving...";
         await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
-        
-        document.getElementById('in-word').value = ""; 
-        document.getElementById('in-mean').value = "";
+        document.getElementById('in-word').value = ""; document.getElementById('in-mean').value = "";
         document.getElementById('save-btn').innerText = "SAVE TO CLOUD";
         await fetchCloudData();
         switchView('study');
