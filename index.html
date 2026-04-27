@@ -21,12 +21,11 @@
             margin: 0; background: var(--bg); color: var(--text); 
             line-height: 1.6; padding-bottom: 120px; overflow-x: hidden;
         }
-        .vocab-word, .s-target, .paragraph-text, .m-btn, input { font-family: var(--font-thai), var(--font-main); }
+        .vocab-word, .s-target, .paragraph-text, .m-btn, input, select { font-family: var(--font-thai), var(--font-main); }
         .header { padding: 45px 20px 15px; text-align: center; }
         .status-badge { font-size: 10px; letter-spacing: 2.5px; color: var(--accent); font-weight: 800; text-transform: uppercase; }
         h1 { margin: 8px 0 0; font-weight: 800; font-size: 22px; color: #fff; letter-spacing: -0.5px; }
         
-        /* Language Tab Styling */
         .tabs-container { display: flex; gap: 10px; padding: 20px; overflow-x: auto; scrollbar-width: none; justify-content: center; }
         .tab { 
             padding: 11px 22px; border-radius: 12px; background: var(--card-bg); 
@@ -48,8 +47,14 @@
         .vocab-row { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
         .vocab-word { font-size: 22px; font-weight: 600; color: #fff; display: block; }
         .vocab-mean { font-size: 14px; color: var(--text-light); }
-        .fa-volume-high { float: right; color: var(--primary); font-size: 14px; margin-top: 10px; opacity: 0.6; }
         
+        /* New styling for category grouping */
+        .category-header { 
+            margin-top: 25px; color: var(--accent); font-weight: 800; 
+            font-size: 12px; text-transform: uppercase; border-bottom: 1px solid var(--primary);
+            padding-bottom: 5px; margin-bottom: 10px;
+        }
+
         .audio-popup {
             position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%);
             background: var(--primary); color: white; padding: 12px 25px;
@@ -77,7 +82,7 @@
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-light); cursor: pointer; }
         .nav-item.active { color: var(--primary); }
         .hidden { display: none; }
-        .submit-btn { background: var(--primary); color: white; border: none; width: 100%; padding: 18px; border-radius: 16px; font-weight: 800; cursor: pointer; }
+        .submit-btn { background: var(--primary); color: white; border: none; width: 100%; padding: 18px; border-radius: 16px; font-weight: 800; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -116,7 +121,13 @@
     <div class="content-card">
         <span class="status-badge">Add New to <span id="target-lang-label">Thai</span></span>
         <div style="margin-top:20px;"></div>
-        <input type="text" id="in-topic" placeholder="Category" style="margin-bottom:12px;">
+        
+        <select id="select-topic" onchange="toggleTopicInput()" style="margin-bottom:12px;">
+            <option value="">-- Select Category --</option>
+            <option value="NEW">+ Add New Category</option>
+        </select>
+        <input type="text" id="in-topic" placeholder="Type new category name..." class="hidden" style="margin-bottom:12px;">
+        
         <input type="text" id="in-word" placeholder="Target Word" style="margin-bottom:12px;">
         <input type="text" id="in-mean" placeholder="Translation" style="margin-bottom:12px;">
         <button class="submit-btn" id="save-btn" onclick="submitNewWord()">SAVE TO CLOUD</button>
@@ -146,17 +157,12 @@
     const fileMap = { 'Thai': 'Thai.json', 'Chinese': 'chinese.json', 'Korean': 'korea.json' };
     const { pinyin } = pinyinPro;
 
-    // Core Language Switcher (Optimized for Speed)
     async function switchLang(lang) {
         if(currentLang === lang && rawData) return;
         currentLang = lang;
-        
-        // Instant UI feedback
         document.getElementById('target-lang-label').innerText = lang;
         document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.innerText === lang.toUpperCase()));
         document.getElementById('status').innerText = "Loading...";
-
-        // Start both fetches, but prioritize JSON
         fetchLocalJSON();
         fetchCloudData();
     }
@@ -177,9 +183,34 @@
         try {
             const cloudRes = await fetch(SCRIPT_URL);
             customData = await cloudRes.json();
+            updateTopicDropdown(); // Update the dropdown options when data arrives
             document.getElementById('status').innerText = "Cloud Live";
             if(currentView === 'star') renderStarList();
         } catch (e) { document.getElementById('status').innerText = "Offline Mode"; }
+    }
+
+    // New logic to populate the Category Dropdown
+    function updateTopicDropdown() {
+        const select = document.getElementById('select-topic');
+        const currentTopics = [...new Set(customData.filter(i => i.lang === currentLang).map(i => i.topic))].filter(Boolean);
+        
+        let html = '<option value="">-- Select Category --</option>';
+        currentTopics.forEach(t => {
+            html += `<option value="${t}">${t}</option>`;
+        });
+        html += '<option value="NEW">+ Add New Category</option>';
+        select.innerHTML = html;
+    }
+
+    function toggleTopicInput() {
+        const select = document.getElementById('select-topic');
+        const input = document.getElementById('in-topic');
+        if (select.value === "NEW") {
+            input.classList.remove('hidden');
+            input.focus();
+        } else {
+            input.classList.add('hidden');
+        }
     }
 
     function populateChapters() {
@@ -201,23 +232,21 @@
         if (mode === 'vocab') {
             (ch.Vocabulary_List || "").split(',').forEach(v => {
                 const p = v.split('=').map(s => s.trim());
-                if(p.length >= 2) display.innerHTML += `<div class="vocab-row" onclick="speak('${p[0]}', '${currentLang}')"><i class="fa-solid fa-volume-high"></i><span class="vocab-word">${p[0]}</span><span class="vocab-mean">${p[1]}</span></div>`;
+                if(p.length >= 2) display.innerHTML += `<div class="vocab-row" onclick="speak('${p[0]}', '${currentLang}')"><i class="fa-solid fa-volume-high" style="float:right; opacity:0.5;"></i><span class="vocab-word">${p[0]}</span><span class="vocab-mean">${p[1]}</span></div>`;
             });
         } else if (mode === 'sentences') {
             (ch.Sentences || "").split(';').forEach(s => {
                 const p = s.split(':').map(i => i.trim());
-                if(p.length >= 2) display.innerHTML += `<div class="sentence-box" onclick="speak('${p[0]}', '${currentLang}')"><div class="s-target">${p[0]}</div><div class="s-trans">${p[1]}</div></div>`;
+                if(p.length >= 2) display.innerHTML += `<div class="vocab-row" onclick="speak('${p[0]}', '${currentLang}')"><span class="vocab-word" style="font-size:18px;">${p[0]}</span><span class="vocab-mean">${p[1]}</span></div>`;
             });
         } else if (mode === 'paragraph') {
-            display.innerHTML += `<div class="paragraph-text" onclick="speak(this.innerText, '${currentLang}')">${ch.Paragraph || "..."}</div>`;
+            display.innerHTML += `<div class="paragraph-text" style="font-size:18px; line-height:2;" onclick="speak(this.innerText, '${currentLang}')">${ch.Paragraph || "..."}</div>`;
         }
     }
 
-    // TTS & Auto-Pinyin
     function speak(text, lang) {
         window.speechSynthesis.cancel(); 
         let dText = text, sText = text;
-
         if (lang === 'Chinese') {
             sText = text.replace(/[^\u4e00-\u9fa5]/g, '');
             if (!/[a-zA-Z]/.test(text)) dText = `${sText} (${pinyin(sText)})`;
@@ -243,6 +272,7 @@
         document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.innerText.toLowerCase().includes(view === 'study' ? 'learn' : view)));
         if(view === 'game') resetGame(); 
         if(view === 'star') renderStarList();
+        if(view === 'upload') updateTopicDropdown();
     }
 
     function resetGame() {
@@ -296,26 +326,60 @@
         }
     }
 
+    // New logic to render by category grouping
     function renderStarList() {
         const display = document.getElementById('star-display');
         const filtered = customData.filter(item => item.lang === currentLang);
-        display.innerHTML = `<span class="status-badge">My ${currentLang} List</span><div style="margin-top:20px;"></div>`;
-        if(filtered.length === 0) display.innerHTML += "<p style='text-align:center; padding-top:100px;'>Empty.</p>";
-        filtered.reverse().forEach(item => {
-            display.innerHTML += `<div class="vocab-row" onclick="speak('${item.target}', '${currentLang}')"><span class="vocab-word">${item.target}</span><span class="vocab-mean">${item.trans}</span></div>`;
+        display.innerHTML = `<span class="status-badge">My ${currentLang} Library</span><div style="margin-top:20px;"></div>`;
+        
+        if(filtered.length === 0) {
+            display.innerHTML += "<p style='text-align:center; padding-top:100px;'>No words saved yet.</p>";
+            return;
+        }
+
+        // Grouping logic
+        const groups = {};
+        filtered.forEach(item => {
+            const topic = item.topic || "Uncategorized";
+            if (!groups[topic]) groups[topic] = [];
+            groups[topic].push(item);
         });
+
+        for (const topic in groups) {
+            display.innerHTML += `<div class="category-header">${topic}</div>`;
+            groups[topic].reverse().forEach(item => {
+                display.innerHTML += `<div class="vocab-row" onclick="speak('${item.target}', '${currentLang}')"><span class="vocab-word">${item.target}</span><span class="vocab-mean">${item.trans}</span></div>`;
+            });
+        }
     }
 
     async function submitNewWord() {
-        const payload = { lang: currentLang, topic: document.getElementById('in-topic').value, target: document.getElementById('in-word').value, trans: document.getElementById('in-mean').value };
-        if(!payload.target || !payload.trans) return;
+        const selectVal = document.getElementById('select-topic').value;
+        const inputVal = document.getElementById('in-topic').value;
+        const finalTopic = selectVal === "NEW" ? inputVal : selectVal;
+
+        const payload = { 
+            lang: currentLang, 
+            topic: finalTopic || "General", 
+            target: document.getElementById('in-word').value, 
+            trans: document.getElementById('in-mean').value 
+        };
+
+        if(!payload.target || !payload.trans) {
+            alert("Please fill in word and translation");
+            return;
+        }
+
         document.getElementById('save-btn').innerText = "SAVING...";
         try {
             await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
-            document.getElementById('in-word').value = ""; document.getElementById('in-mean').value = "";
+            document.getElementById('in-word').value = ""; 
+            document.getElementById('in-mean').value = "";
+            document.getElementById('in-topic').value = "";
+            document.getElementById('in-topic').classList.add('hidden');
             fetchCloudData();
             switchView('star');
-        } catch (e) { alert("Error"); }
+        } catch (e) { alert("Error connecting to cloud"); }
         document.getElementById('save-btn').innerText = "SAVE TO CLOUD";
     }
 
