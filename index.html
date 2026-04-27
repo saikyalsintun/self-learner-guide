@@ -12,6 +12,7 @@
         :root {
             --primary: #6C5CE7; --accent: #00CEC9; --bg: #0C0C1E;
             --card-bg: rgba(30, 30, 50, 0.9); --text: #F1F2F6; --text-light: #A4A4B5;
+            --danger: #FF4757;
             --font-main: 'Plus Jakarta Sans', sans-serif;
             --font-thai: 'Sarabun', sans-serif; 
         }
@@ -47,13 +48,7 @@
         .vocab-row { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
         .vocab-word { font-size: 22px; font-weight: 600; color: #fff; display: block; }
         .vocab-mean { font-size: 14px; color: var(--text-light); }
-        
-        /* New styling for category grouping */
-        .category-header { 
-            margin-top: 25px; color: var(--accent); font-weight: 800; 
-            font-size: 12px; text-transform: uppercase; border-bottom: 1px solid var(--primary);
-            padding-bottom: 5px; margin-bottom: 10px;
-        }
+        .category-header { margin-top: 25px; color: var(--accent); font-weight: 800; font-size: 12px; text-transform: uppercase; border-bottom: 1px solid var(--primary); padding-bottom: 5px; margin-bottom: 10px; }
 
         .audio-popup {
             position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%);
@@ -68,10 +63,11 @@
         .m-btn { 
             padding: 14px; border-radius: 18px; background: rgba(255,255,255,0.02); 
             border: 1px solid rgba(255,255,255,0.08); color: #fff; cursor: pointer;
-            min-height: 75px; display: flex; align-items: center; justify-content: center; text-align: center;
+            min-height: 75px; display: flex; align-items: center; justify-content: center; text-align: center; transition: 0.2s;
         }
         .m-btn.selected { background: var(--primary); border-color: var(--accent); }
         .m-btn.matched { opacity: 0; pointer-events: none; }
+        .m-btn.error { border-color: var(--danger); background: rgba(255, 71, 87, 0.1); }
 
         .nav { 
             position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%); 
@@ -82,7 +78,7 @@
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-light); cursor: pointer; }
         .nav-item.active { color: var(--primary); }
         .hidden { display: none; }
-        .submit-btn { background: var(--primary); color: white; border: none; width: 100%; padding: 18px; border-radius: 16px; font-weight: 800; cursor: pointer; margin-top: 10px; }
+        .submit-btn { background: var(--primary); color: white; border: none; width: 100%; padding: 18px; border-radius: 16px; font-weight: 800; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -119,15 +115,13 @@
 
 <div id="view-upload" class="container hidden">
     <div class="content-card">
-        <span class="status-badge">Add New to <span id="target-lang-label">Thai</span></span>
+        <span class="status-badge">Add New Word</span>
         <div style="margin-top:20px;"></div>
-        
         <select id="select-topic" onchange="toggleTopicInput()" style="margin-bottom:12px;">
             <option value="">-- Select Category --</option>
             <option value="NEW">+ Add New Category</option>
         </select>
-        <input type="text" id="in-topic" placeholder="Type new category name..." class="hidden" style="margin-bottom:12px;">
-        
+        <input type="text" id="in-topic" placeholder="Category Name" class="hidden" style="margin-bottom:12px;">
         <input type="text" id="in-word" placeholder="Target Word" style="margin-bottom:12px;">
         <input type="text" id="in-mean" placeholder="Translation" style="margin-bottom:12px;">
         <button class="submit-btn" id="save-btn" onclick="submitNewWord()">SAVE TO CLOUD</button>
@@ -146,7 +140,7 @@
 </nav>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZdK3xJD4uSHxs6KKqNpx8XEj7fwNrodO3ldnrrdUzLv5tUosacAvmDRBq-u-tIaYk/exec";
+    const SCRIPT_URL = "YOUR_APPS_SCRIPT_URL_HERE"; // <--- UPDATE THIS
     let rawData = null;
     let customData = []; 
     let currentLang = 'Thai';
@@ -158,11 +152,9 @@
     const { pinyin } = pinyinPro;
 
     async function switchLang(lang) {
-        if(currentLang === lang && rawData) return;
         currentLang = lang;
-        document.getElementById('target-lang-label').innerText = lang;
-        document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.innerText === lang.toUpperCase()));
         document.getElementById('status').innerText = "Loading...";
+        document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.innerText === lang.toUpperCase()));
         fetchLocalJSON();
         fetchCloudData();
     }
@@ -175,7 +167,6 @@
             populateChapters();
             if(currentView === 'study') renderStudy();
             if(currentView === 'game') resetGame();
-            document.getElementById('status').innerText = "Local Synced";
         } catch (e) { console.error("JSON Error"); }
     }
 
@@ -183,21 +174,17 @@
         try {
             const cloudRes = await fetch(SCRIPT_URL);
             customData = await cloudRes.json();
-            updateTopicDropdown(); // Update the dropdown options when data arrives
-            document.getElementById('status').innerText = "Cloud Live";
+            updateTopicDropdown();
             if(currentView === 'star') renderStarList();
+            document.getElementById('status').innerText = "Cloud Live";
         } catch (e) { document.getElementById('status').innerText = "Offline Mode"; }
     }
 
-    // New logic to populate the Category Dropdown
     function updateTopicDropdown() {
         const select = document.getElementById('select-topic');
         const currentTopics = [...new Set(customData.filter(i => i.lang === currentLang).map(i => i.topic))].filter(Boolean);
-        
         let html = '<option value="">-- Select Category --</option>';
-        currentTopics.forEach(t => {
-            html += `<option value="${t}">${t}</option>`;
-        });
+        currentTopics.forEach(t => { html += `<option value="${t}">${t}</option>`; });
         html += '<option value="NEW">+ Add New Category</option>';
         select.innerHTML = html;
     }
@@ -205,12 +192,7 @@
     function toggleTopicInput() {
         const select = document.getElementById('select-topic');
         const input = document.getElementById('in-topic');
-        if (select.value === "NEW") {
-            input.classList.remove('hidden');
-            input.focus();
-        } else {
-            input.classList.add('hidden');
-        }
+        select.value === "NEW" ? input.classList.remove('hidden') : input.classList.add('hidden');
     }
 
     function populateChapters() {
@@ -221,47 +203,96 @@
         gSel.innerHTML = `<option value="cloud">⭐ My Saved Words</option>` + opts;
     }
 
-    function renderStudy() {
-        const idx = document.getElementById('study-chapter').value || 0;
-        const mode = document.getElementById('study-mode').value;
-        const display = document.getElementById('study-display');
-        if(!rawData || !rawData[idx]) return;
-        const ch = rawData[idx];
-        display.innerHTML = `<span class="status-badge">${ch.Chapter_name}</span><div style="margin-top:20px;"></div>`;
-        
-        if (mode === 'vocab') {
-            (ch.Vocabulary_List || "").split(',').forEach(v => {
-                const p = v.split('=').map(s => s.trim());
-                if(p.length >= 2) display.innerHTML += `<div class="vocab-row" onclick="speak('${p[0]}', '${currentLang}')"><i class="fa-solid fa-volume-high" style="float:right; opacity:0.5;"></i><span class="vocab-word">${p[0]}</span><span class="vocab-mean">${p[1]}</span></div>`;
-            });
-        } else if (mode === 'sentences') {
-            (ch.Sentences || "").split(';').forEach(s => {
-                const p = s.split(':').map(i => i.trim());
-                if(p.length >= 2) display.innerHTML += `<div class="vocab-row" onclick="speak('${p[0]}', '${currentLang}')"><span class="vocab-word" style="font-size:18px;">${p[0]}</span><span class="vocab-mean">${p[1]}</span></div>`;
-            });
-        } else if (mode === 'paragraph') {
-            display.innerHTML += `<div class="paragraph-text" style="font-size:18px; line-height:2;" onclick="speak(this.innerText, '${currentLang}')">${ch.Paragraph || "..."}</div>`;
-        }
-    }
-
     function speak(text, lang) {
         window.speechSynthesis.cancel(); 
-        let dText = text, sText = text;
-        if (lang === 'Chinese') {
-            sText = text.replace(/[^\u4e00-\u9fa5]/g, '');
-            if (!/[a-zA-Z]/.test(text)) dText = `${sText} (${pinyin(sText)})`;
-        } else if (lang === 'Thai') sText = text.replace(/[^\u0E00-\u0E7F]/g, '');
+        let sText = text;
+        if (lang === 'Chinese') sText = text.replace(/[^\u4e00-\u9fa5]/g, '');
+        else if (lang === 'Thai') sText = text.replace(/[^\u0E00-\u0E7F]/g, '');
         else if (lang === 'Korean') sText = text.replace(/[^\uAC00-\uD7AF]/g, '');
 
         const toast = document.getElementById('audio-toast');
-        toast.innerText = dText; toast.classList.add('show');
+        toast.innerText = text; toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 2000);
 
-        if (sText.trim().length > 0) {
-            const msg = new SpeechSynthesisUtterance(sText);
-            msg.lang = { 'Thai': 'th-TH', 'Chinese': 'zh-CN', 'Korean': 'ko-KR' }[lang];
-            msg.rate = 0.9; 
-            window.speechSynthesis.speak(msg);
+        const msg = new SpeechSynthesisUtterance(sText);
+        msg.lang = { 'Thai': 'th-TH', 'Chinese': 'zh-CN', 'Korean': 'ko-KR' }[lang];
+        msg.rate = 0.9; 
+        window.speechSynthesis.speak(msg);
+    }
+
+    // --- UPDATED GAME LOGIC ---
+    function resetGame() {
+        const sel = document.getElementById('game-chapter').value;
+        let source = [];
+        if (sel === "cloud") {
+            source = customData.filter(item => item.lang === currentLang).map(i => ({t: i.target, e: i.trans, topic: i.topic}));
+        } else {
+            const ch = rawData[sel || 0];
+            source = (ch.Vocabulary_List || "").split(',').map(v => {
+                const p = v.split('=').map(s => s.trim());
+                return { t: p[0], e: p[1], topic: ch.Chapter_name };
+            }).filter(x => x.t && x.e);
+        }
+        
+        // Shuffle Entire Deck & Prevent Repeats
+        gamePool = source.sort(() => Math.random() - 0.5);
+        renderGameRound();
+    }
+
+    function renderGameRound() {
+        const display = document.getElementById('game-display');
+        selectedLeft = null;
+        if (gamePool.length === 0) {
+            display.innerHTML = `<div style="text-align:center; padding-top:60px;"><h2>WELL DONE!</h2><button class="submit-btn" onclick="resetGame()">PLAY AGAIN</button></div>`;
+            return;
+        }
+        const currentRound = gamePool.splice(0, 5); // Take 5, remove them from pool
+        const left = [...currentRound].sort(() => Math.random() - 0.5);
+        const right = [...currentRound].sort(() => Math.random() - 0.5);
+
+        display.innerHTML = `<div class="grid" id="g"></div>`;
+        left.forEach((it, i) => {
+            document.getElementById('g').innerHTML += `<div class="m-btn" data-v="${left[i].t}" data-e="${left[i].e}" data-topic="${left[i].topic}" onclick="match(this, 'L')">${left[i].e}</div>`;
+            document.getElementById('g').innerHTML += `<div class="m-btn" data-v="${right[i].t}" onclick="match(this, 'R')">${right[i].t}</div>`;
+        });
+    }
+
+    async function match(btn, side) {
+        if(btn.classList.contains('matched')) return;
+        if(side === 'L') {
+            document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('selected'));
+            selectedLeft = btn; btn.classList.add('selected');
+        } else if(selectedLeft) {
+            if(selectedLeft.dataset.v === btn.dataset.v) {
+                speak(btn.dataset.v, currentLang);
+                selectedLeft.classList.add('matched'); btn.classList.add('matched');
+                selectedLeft = null;
+                if(document.querySelectorAll('.m-btn:not(.matched)').length === 0) setTimeout(renderGameRound, 600);
+            } else {
+                // WRONG ANSWER - Log to History
+                btn.classList.add('error');
+                setTimeout(() => btn.classList.remove('error'), 500);
+                const payload = { type: 'wrong', lang: currentLang, topic: selectedLeft.dataset.topic, target: selectedLeft.dataset.v, trans: selectedLeft.dataset.e };
+                fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
+            }
+        }
+    }
+
+    function renderStarList() {
+        const display = document.getElementById('star-display');
+        const filtered = customData.filter(item => item.lang === currentLang);
+        display.innerHTML = `<span class="status-badge">My Library</span><div style="margin-top:20px;"></div>`;
+        const groups = {};
+        filtered.forEach(i => {
+            const t = i.topic || "General";
+            if(!groups[t]) groups[t] = [];
+            groups[t].push(i);
+        });
+        for (const t in groups) {
+            display.innerHTML += `<div class="category-header">${t}</div>`;
+            groups[t].reverse().forEach(i => {
+                display.innerHTML += `<div class="vocab-row" onclick="speak('${i.target}', '${currentLang}')"><span class="vocab-word">${i.target}</span><span class="vocab-mean">${i.trans}</span></div>`;
+            });
         }
     }
 
@@ -269,117 +300,20 @@
         currentView = view;
         ['view-study', 'view-game', 'view-upload', 'view-star'].forEach(v => document.getElementById(v).classList.add('hidden'));
         document.getElementById(`view-${view}`).classList.remove('hidden');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.innerText.toLowerCase().includes(view === 'study' ? 'learn' : view)));
         if(view === 'game') resetGame(); 
         if(view === 'star') renderStarList();
-        if(view === 'upload') updateTopicDropdown();
-    }
-
-    function resetGame() {
-        const sel = document.getElementById('game-chapter').value;
-        if (sel === "cloud") {
-            const filtered = customData.filter(item => item.lang === currentLang);
-            if(filtered.length < 2) {
-                document.getElementById('game-display').innerHTML = `<p style='text-align:center; padding-top:100px;'>Add at least 2 words first!</p>`;
-                return;
-            }
-            gamePool = filtered.map(item => ({ t: item.target, e: item.trans }));
-        } else {
-            if(!rawData) return;
-            const ch = rawData[sel || 0];
-            gamePool = (ch.Vocabulary_List || "").split(',').map(v => {
-                const p = v.split('=').map(s => s.trim());
-                return { t: p[0], e: p[1] };
-            }).filter(x => x.t && x.e);
-        }
-        renderGameRound();
-    }
-
-    function renderGameRound() {
-        const display = document.getElementById('game-display');
-        if (gamePool.length === 0) {
-            display.innerHTML = `<div style="text-align:center; padding-top:60px;"><h2>COMPLETE</h2><button class="submit-btn" onclick="resetGame()">REPLAY</button></div>`;
-            return;
-        }
-        const round = gamePool.slice(0, 5);
-        const left = [...round].sort(() => Math.random() - 0.5);
-        const right = [...round].sort(() => Math.random() - 0.5);
-        display.innerHTML = `<div class="grid" id="g"></div>`;
-        left.forEach((it, i) => {
-            document.getElementById('g').innerHTML += `<div class="m-btn" data-v="${left[i].t}" onclick="match(this, 'L')">${left[i].e}</div>`;
-            document.getElementById('g').innerHTML += `<div class="m-btn" data-v="${right[i].t}" onclick="match(this, 'R')">${right[i].t}</div>`;
-        });
-    }
-
-    function match(btn, side) {
-        if(btn.classList.contains('matched')) return;
-        if(side === 'L') {
-            document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('selected'));
-            selectedLeft = btn; btn.classList.add('selected');
-        } else if(selectedLeft && selectedLeft.dataset.v === btn.dataset.v) {
-            speak(btn.dataset.v, currentLang);
-            selectedLeft.classList.add('matched'); btn.classList.add('matched');
-            selectedLeft = null;
-            if(document.querySelectorAll('.m-btn:not(.matched)').length === 0) {
-                gamePool = gamePool.slice(5); setTimeout(renderGameRound, 600);
-            }
-        }
-    }
-
-    // New logic to render by category grouping
-    function renderStarList() {
-        const display = document.getElementById('star-display');
-        const filtered = customData.filter(item => item.lang === currentLang);
-        display.innerHTML = `<span class="status-badge">My ${currentLang} Library</span><div style="margin-top:20px;"></div>`;
-        
-        if(filtered.length === 0) {
-            display.innerHTML += "<p style='text-align:center; padding-top:100px;'>No words saved yet.</p>";
-            return;
-        }
-
-        // Grouping logic
-        const groups = {};
-        filtered.forEach(item => {
-            const topic = item.topic || "Uncategorized";
-            if (!groups[topic]) groups[topic] = [];
-            groups[topic].push(item);
-        });
-
-        for (const topic in groups) {
-            display.innerHTML += `<div class="category-header">${topic}</div>`;
-            groups[topic].reverse().forEach(item => {
-                display.innerHTML += `<div class="vocab-row" onclick="speak('${item.target}', '${currentLang}')"><span class="vocab-word">${item.target}</span><span class="vocab-mean">${item.trans}</span></div>`;
-            });
-        }
     }
 
     async function submitNewWord() {
-        const selectVal = document.getElementById('select-topic').value;
-        const inputVal = document.getElementById('in-topic').value;
-        const finalTopic = selectVal === "NEW" ? inputVal : selectVal;
-
-        const payload = { 
-            lang: currentLang, 
-            topic: finalTopic || "General", 
-            target: document.getElementById('in-word').value, 
-            trans: document.getElementById('in-mean').value 
-        };
-
-        if(!payload.target || !payload.trans) {
-            alert("Please fill in word and translation");
-            return;
-        }
-
+        const s = document.getElementById('select-topic').value;
+        const i = document.getElementById('in-topic').value;
+        const payload = { lang: currentLang, topic: s === "NEW" ? i : s, target: document.getElementById('in-word').value, trans: document.getElementById('in-mean').value };
+        if(!payload.target || !payload.trans) return;
         document.getElementById('save-btn').innerText = "SAVING...";
-        try {
-            await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
-            document.getElementById('in-word').value = ""; 
-            document.getElementById('in-mean').value = "";
-            document.getElementById('in-topic').value = "";
-            document.getElementById('in-topic').classList.add('hidden');
-            fetchCloudData();
-            switchView('star');
-        } catch (e) { alert("Error connecting to cloud"); }
+        await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
+        document.getElementById('in-word').value = ""; document.getElementById('in-mean').value = "";
+        fetchCloudData();
+        switchView('star');
         document.getElementById('save-btn').innerText = "SAVE TO CLOUD";
     }
 
