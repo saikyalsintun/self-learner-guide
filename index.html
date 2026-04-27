@@ -6,8 +6,6 @@
     <title>Polyglot Flow</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://unpkg.com/pinyin-pro"></script>
-
     <style>
         :root {
             --primary: #6C5CE7; --accent: #00CEC9; --bg: #0C0C1E;
@@ -22,7 +20,7 @@
             margin: 0; background: var(--bg); color: var(--text); 
             line-height: 1.6; padding-bottom: 120px; overflow-x: hidden;
         }
-        .vocab-word, .s-target, .paragraph-text, .m-btn, input, select { font-family: var(--font-thai), var(--font-main); }
+        .vocab-word, .m-btn, input, select { font-family: var(--font-thai), var(--font-main); }
         .header { padding: 45px 20px 15px; text-align: center; }
         .status-badge { font-size: 10px; letter-spacing: 2.5px; color: var(--accent); font-weight: 800; text-transform: uppercase; }
         h1 { margin: 8px 0 0; font-weight: 800; font-size: 22px; color: #fff; letter-spacing: -0.5px; }
@@ -50,24 +48,14 @@
         .vocab-mean { font-size: 14px; color: var(--text-light); }
         .category-header { margin-top: 25px; color: var(--accent); font-weight: 800; font-size: 12px; text-transform: uppercase; border-bottom: 1px solid var(--primary); padding-bottom: 5px; margin-bottom: 10px; }
 
-        .audio-popup {
-            position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%);
-            background: var(--primary); color: white; padding: 12px 25px;
-            border-radius: 20px; font-weight: 600; font-size: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 2000;
-            opacity: 0; transition: 0.3s; pointer-events: none;
-        }
-        .audio-popup.show { opacity: 1; transform: translateX(-50%) translateY(-10px); }
-
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .m-btn { 
             padding: 14px; border-radius: 18px; background: rgba(255,255,255,0.02); 
             border: 1px solid rgba(255,255,255,0.08); color: #fff; cursor: pointer;
             min-height: 75px; display: flex; align-items: center; justify-content: center; text-align: center; transition: 0.2s;
-            font-size: 14px;
         }
         .m-btn.selected { background: var(--primary); border-color: var(--accent); }
-        .m-btn.matched { opacity: 0; pointer-events: none; }
+        .m-btn.matched { opacity: 0.1; pointer-events: none; border-color: transparent; }
         .m-btn.error { border-color: var(--danger); background: rgba(255, 71, 87, 0.1); }
 
         .nav { 
@@ -81,13 +69,13 @@
         .nav-item span { font-size: 10px; font-weight: 600; }
         .nav-item.active { color: var(--primary); }
         .hidden { display: none; }
-        .submit-btn { background: var(--primary); color: white; border: none; width: 100%; padding: 18px; border-radius: 16px; font-weight: 800; cursor: pointer; margin-top: 10px;}
+        .submit-btn { background: var(--primary); color: white; border: none; width: 100%; padding: 18px; border-radius: 16px; font-weight: 800; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="status-badge" id="status">Ready</div>
+    <div class="status-badge" id="status">Syncing...</div>
     <h1>Polyglot Flow</h1>
 </div>
 
@@ -97,16 +85,9 @@
     <div class="tab" onclick="switchLang('Korean')">KOREAN</div>
 </div>
 
-<div id="audio-toast" class="audio-popup"></div>
-
 <div id="view-study" class="container">
     <div class="controls">
         <select id="study-chapter" onchange="renderStudy()"></select>
-        <select id="study-mode" onchange="renderStudy()">
-            <option value="vocab">Vocabulary List</option>
-            <option value="sentences">Example Sentences</option>
-            <option value="paragraph">Reading Paragraph</option>
-        </select>
     </div>
     <div id="study-display" class="content-card"></div>
 </div>
@@ -118,21 +99,14 @@
 
 <div id="view-upload" class="container hidden">
     <div class="content-card">
-        <span class="status-badge">Add New Word</span>
+        <span class="status-badge">Add Word</span>
         <div style="margin-top:20px;"></div>
-        <select id="select-topic" onchange="toggleTopicInput()" style="margin-bottom:12px;">
-            <option value="">-- Select Category --</option>
-            <option value="NEW">+ Add New Category</option>
-        </select>
+        <select id="select-topic" onchange="toggleTopicInput()" style="margin-bottom:12px;"></select>
         <input type="text" id="in-topic" placeholder="Category Name" class="hidden" style="margin-bottom:12px;">
-        <input type="text" id="in-word" placeholder="Target Word" style="margin-bottom:12px;">
-        <input type="text" id="in-mean" placeholder="Translation" style="margin-bottom:12px;">
+        <input type="text" id="in-word" placeholder="Word (e.g. 征求)" style="margin-bottom:12px;">
+        <input type="text" id="in-mean" placeholder="Translation (e.g. Seeking)" style="margin-bottom:12px;">
         <button class="submit-btn" id="save-btn" onclick="submitNewWord()">SAVE TO CLOUD</button>
     </div>
-</div>
-
-<div id="view-star" class="container hidden">
-    <div id="star-display" class="content-card"></div>
 </div>
 
 <div id="view-history" class="container hidden">
@@ -142,130 +116,89 @@
 <nav class="nav">
     <div class="nav-item active" id="nav-study" onclick="switchView('study')"><i class="fas fa-book-open"></i><span>Learn</span></div>
     <div class="nav-item" id="nav-game" onclick="switchView('game')"><i class="fas fa-layer-group"></i><span>Match</span></div>
-    <div class="nav-item" id="nav-upload" onclick="switchView('upload')"><i class="fas fa-cloud-upload-alt"></i><span>Add</span></div>
-    <div class="nav-item" id="nav-star" onclick="switchView('star')"><i class="fas fa-star"></i><span>My List</span></div>
+    <div class="nav-item" id="nav-upload" onclick="switchView('upload')"><i class="fas fa-plus"></i><span>Add</span></div>
     <div class="nav-item" id="nav-history" onclick="switchView('history')"><i class="fas fa-history"></i><span>History</span></div>
 </nav>
 
 <script>
-    const SCRIPT_URL = "YOUR_APPS_SCRIPT_URL_HERE"; // <--- UPDATE THIS
-    let rawData = null;
+    const SCRIPT_URL = "YOUR_APPS_SCRIPT_URL_HERE"; 
     let cloudData = []; 
     let currentLang = 'Thai';
     let currentView = 'study';
     let selectedLeft = null;
     let gamePool = []; 
 
-    const fileMap = { 'Thai': 'Thai.json', 'Chinese': 'chinese.json', 'Korean': 'korea.json' };
+    // INITIAL LOAD
+    window.onload = () => switchLang('Thai');
 
     async function switchLang(lang) {
         currentLang = lang;
         document.getElementById('status').innerText = "Loading...";
         document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.innerText === lang.toUpperCase()));
-        await fetchLocalJSON();
         await fetchCloudData();
-    }
-
-    async function fetchLocalJSON() {
-        try {
-            const response = await fetch(`./${fileMap[currentLang]}?v=${Date.now()}`);
-            rawData = await response.json();
-            if(!Array.isArray(rawData)) rawData = [rawData];
-            populateChapters();
-            if(currentView === 'study') renderStudy();
-        } catch (e) { console.error("Local JSON Load Failed"); }
     }
 
     async function fetchCloudData() {
         try {
             const res = await fetch(SCRIPT_URL);
             cloudData = await res.json();
+            
+            populateChapters();
             updateTopicDropdown();
+            
             document.getElementById('status').innerText = "Cloud Live";
-            if(currentView === 'star') renderStarList();
+            
+            if(currentView === 'study') renderStudy();
             if(currentView === 'history') renderHistory();
-        } catch (e) { document.getElementById('status').innerText = "Offline Mode"; }
+        } catch (e) { document.getElementById('status').innerText = "Offline"; }
     }
 
     function populateChapters() {
         const sSel = document.getElementById('study-chapter');
         const gSel = document.getElementById('game-chapter');
-        const opts = rawData.map((ch, i) => `<option value="${i}">${ch.Chapter_name || 'Chapter '+(i+1)}</option>`).join('');
-        sSel.innerHTML = opts;
-        gSel.innerHTML = `<option value="cloud">⭐ My Saved Words</option>` + opts;
-    }
-
-    function updateTopicDropdown() {
-        const select = document.getElementById('select-topic');
-        const currentTopics = [...new Set(cloudData.filter(i => i.lang === currentLang && i.type !== 'wrong').map(i => i.topic))].filter(Boolean);
-        let html = '<option value="">-- Select Category --</option>';
-        currentTopics.forEach(t => { html += `<option value="${t}">${t}</option>`; });
-        html += '<option value="NEW">+ Add New Category</option>';
-        select.innerHTML = html;
-    }
-
-    function toggleTopicInput() {
-        const select = document.getElementById('select-topic');
-        const input = document.getElementById('in-topic');
-        select.value === "NEW" ? input.classList.remove('hidden') : input.classList.add('hidden');
-    }
-
-    function switchView(view) {
-        currentView = view;
-        ['view-study', 'view-game', 'view-upload', 'view-star', 'view-history'].forEach(v => document.getElementById(v).classList.add('hidden'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         
-        document.getElementById(`view-${view}`).classList.remove('hidden');
-        document.getElementById(`nav-${view}`).classList.add('active');
-
-        if(view === 'game') resetGame(); 
-        if(view === 'star') renderStarList();
-        if(view === 'history') renderHistory();
+        const topics = [...new Set(cloudData
+            .filter(i => i.lang === currentLang && i.type === 'vocab')
+            .map(i => i.topic))];
+        
+        let opts = topics.map(t => `<option value="${t}">${t}</option>`).join('');
+        sSel.innerHTML = opts || '<option>No Topics Found</option>';
+        gSel.innerHTML = `<option value="all">🔥 All Categories</option>` + opts;
     }
 
-    // --- STUDY RENDERER ---
     function renderStudy() {
-        const idx = document.getElementById('study-chapter').value;
-        const mode = document.getElementById('study-mode').value;
+        const topic = document.getElementById('study-chapter').value;
         const display = document.getElementById('study-display');
-        const ch = rawData[idx];
-        if(!ch) return;
+        const filtered = cloudData.filter(i => i.lang === currentLang && i.topic === topic && i.type === 'vocab');
 
-        if(mode === 'vocab') {
-            let html = `<span class="status-badge">${ch.Chapter_name}</span><div style="margin-top:20px;"></div>`;
-            ch.Vocabulary_List.split(',').forEach(v => {
-                const [target, trans] = v.split('=').map(s => s.trim());
-                html += `<div class="vocab-row" onclick="speak('${target}', '${currentLang}')"><span class="vocab-word">${target}</span><span class="vocab-mean">${trans}</span></div>`;
-            });
-            display.innerHTML = html;
-        } else if(mode === 'sentences') {
-            display.innerHTML = `<div class="paragraph-text">${ch.Example_Sentences.replace(/\n/g, '<br>')}</div>`;
-        } else {
-            display.innerHTML = `<div class="paragraph-text">${ch.Reading_Paragraph.replace(/\n/g, '<br>')}</div>`;
-        }
+        let html = `<span class="status-badge">${topic}</span><div style="margin-top:20px;"></div>`;
+        if(filtered.length === 0) html += `<p>No words here.</p>`;
+        
+        filtered.forEach(i => {
+            html += `<div class="vocab-row" onclick="speak('${i.target}', '${currentLang}')">
+                        <span class="vocab-word">${i.target}</span>
+                        <span class="vocab-mean">${i.trans}</span>
+                     </div>`;
+        });
+        display.innerHTML = html;
     }
 
-    // --- GAME LOGIC ---
     function resetGame() {
         const sel = document.getElementById('game-chapter').value;
         let source = [];
         
-        if (sel === "cloud") {
-            source = cloudData.filter(i => i.lang === currentLang && i.type !== 'wrong').map(i => ({ t: i.target, e: i.trans, topic: i.topic }));
+        if (sel === "all") {
+            source = cloudData.filter(i => i.lang === currentLang && i.type === 'vocab');
         } else {
-            const ch = rawData[sel];
-            source = ch.Vocabulary_List.split(',').map(v => {
-                const p = v.split('=').map(s => s.trim());
-                return { t: p[0], e: p[1], topic: ch.Chapter_name };
-            });
+            source = cloudData.filter(i => i.lang === currentLang && i.topic === sel && i.type === 'vocab');
         }
         
         if(source.length < 2) {
-            document.getElementById('game-display').innerHTML = `<div style="text-align:center; padding-top:50px;">Add at least 2 words to play!</div>`;
+            document.getElementById('game-display').innerHTML = `<div style="text-align:center; padding-top:50px;">Add more words to play!</div>`;
             return;
         }
 
-        gamePool = source.sort(() => Math.random() - 0.5);
+        gamePool = [...source].sort(() => Math.random() - 0.5);
         renderGameRound();
     }
 
@@ -282,94 +215,120 @@
         const right = [...currentRound].sort(() => Math.random() - 0.5);
 
         display.innerHTML = `<div class="grid" id="g-container"></div>`;
-        left.forEach((it) => {
-            document.getElementById('g-container').innerHTML += `<div class="m-btn" data-v="${it.t}" data-e="${it.e}" data-topic="${it.topic}" onclick="match(this, 'L')">${it.e}</div>`;
-            const rItem = right.pop();
-            document.getElementById('g-container').innerHTML += `<div class="m-btn" data-v="${rItem.t}" onclick="match(this, 'R')">${rItem.t}</div>`;
+        left.forEach((it, idx) => {
+            const rItem = right[idx];
+            // Left column (Translations)
+            document.getElementById('g-container').innerHTML += `<div class="m-btn" data-v="${it.target}" data-e="${it.trans}" data-topic="${it.topic}" onclick="match(this, 'L')">${it.trans}</div>`;
+            // Right column (Target words)
+            document.getElementById('g-container').innerHTML += `<div class="m-btn" data-v="${rItem.target}" onclick="match(this, 'R')">${rItem.target}</div>`;
         });
     }
 
     async function match(btn, side) {
         if(btn.classList.contains('matched')) return;
+        
         if(side === 'L') {
             document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('selected'));
-            selectedLeft = btn; btn.classList.add('selected');
+            selectedLeft = btn; 
+            btn.classList.add('selected');
         } else if(selectedLeft) {
-            if(selectedLeft.dataset.v === btn.dataset.v) {
+            if(selectedLeft.dataset.v === btn.innerText) {
                 speak(btn.innerText, currentLang);
-                selectedLeft.classList.add('matched'); btn.classList.add('matched');
+                selectedLeft.classList.add('matched'); 
+                btn.classList.add('matched');
                 selectedLeft = null;
-                if(document.querySelectorAll('.m-btn:not(.matched)').length === 0) setTimeout(renderGameRound, 600);
+                if(document.querySelectorAll('.m-btn:not(.matched)').length === 0) {
+                    setTimeout(renderGameRound, 600);
+                }
             } else {
                 btn.classList.add('error');
                 setTimeout(() => btn.classList.remove('error'), 500);
-                const payload = { type: 'wrong', lang: currentLang, topic: selectedLeft.dataset.topic, target: selectedLeft.dataset.v, trans: selectedLeft.dataset.e };
+                // Log wrong answer to History
+                const payload = { 
+                    type: 'wrong', 
+                    lang: currentLang, 
+                    topic: selectedLeft.dataset.topic, 
+                    target: selectedLeft.dataset.v, 
+                    trans: selectedLeft.dataset.e 
+                };
                 fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
             }
-        }
-    }
-
-    // --- LIST RENDERERS ---
-    function renderStarList() {
-        const display = document.getElementById('star-display');
-        const filtered = cloudData.filter(i => i.lang === currentLang && i.type !== 'wrong');
-        display.innerHTML = `<span class="status-badge">My Library</span><div style="margin-top:20px;"></div>`;
-        if(filtered.length === 0) { display.innerHTML += `<p>No saved words yet.</p>`; return; }
-
-        const groups = {};
-        filtered.forEach(i => {
-            const t = i.topic || "General";
-            if(!groups[t]) groups[t] = [];
-            groups[t].push(i);
-        });
-
-        for (const t in groups) {
-            display.innerHTML += `<div class="category-header">${t}</div>`;
-            groups[t].forEach(i => {
-                display.innerHTML += `<div class="vocab-row" onclick="speak('${i.target}', '${currentLang}')"><span class="vocab-word">${i.target}</span><span class="vocab-mean">${i.trans}</span></div>`;
-            });
         }
     }
 
     function renderHistory() {
         const display = document.getElementById('history-display');
         const filtered = cloudData.filter(i => i.lang === currentLang && i.type === 'wrong');
-        display.innerHTML = `<span class="status-badge">Mistake History</span><div style="margin-top:20px;"></div>`;
-        if(filtered.length === 0) { display.innerHTML += `<p>Clean sheet! No mistakes recorded.</p>`; return; }
-
-        filtered.reverse().forEach(i => {
-            display.innerHTML += `<div class="vocab-row" onclick="speak('${i.target}', '${currentLang}')"><span class="vocab-word">${i.target}</span><span class="vocab-mean">${i.trans} <small>(${i.topic})</small></span></div>`;
-        });
+        display.innerHTML = `<span class="status-badge">Mistakes to Review</span><div style="margin-top:20px;"></div>`;
+        
+        if(filtered.length === 0) {
+            display.innerHTML += `<p style="text-align:center; padding:20px;">No mistakes yet! Keep it up.</p>`;
+        } else {
+            filtered.reverse().forEach(i => {
+                display.innerHTML += `<div class="vocab-row" onclick="speak('${i.target}', '${currentLang}')">
+                    <span class="vocab-word">${i.target}</span>
+                    <span class="vocab-mean">${i.trans} <small style="color:var(--primary)">[${i.topic}]</small></span>
+                </div>`;
+            });
+        }
     }
 
-    // --- HELPERS ---
+    function switchView(view) {
+        currentView = view;
+        ['view-study', 'view-game', 'view-upload', 'view-history'].forEach(v => document.getElementById(v).classList.add('hidden'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(`view-${view}`).classList.remove('hidden');
+        document.getElementById(`nav-${view}`).classList.add('active');
+        if(view === 'game') resetGame(); 
+        if(view === 'history') renderHistory();
+    }
+
     function speak(text, lang) {
         window.speechSynthesis.cancel();
-        const toast = document.getElementById('audio-toast');
-        toast.innerText = text; toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 1500);
-
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = { 'Thai': 'th-TH', 'Chinese': 'zh-CN', 'Korean': 'ko-KR' }[lang];
         window.speechSynthesis.speak(msg);
     }
 
+    function updateTopicDropdown() {
+        const select = document.getElementById('select-topic');
+        const topics = [...new Set(cloudData.filter(i => i.lang === currentLang && i.type === 'vocab').map(i => i.topic))];
+        let html = '<option value="">-- Select Category --</option>';
+        topics.forEach(t => { html += `<option value="${t}">${t}</option>`; });
+        html += '<option value="NEW">+ Create New Category</option>';
+        select.innerHTML = html;
+    }
+
+    function toggleTopicInput() {
+        const select = document.getElementById('select-topic');
+        const input = document.getElementById('in-topic');
+        select.value === "NEW" ? input.classList.remove('hidden') : input.classList.add('hidden');
+    }
+
     async function submitNewWord() {
         const s = document.getElementById('select-topic').value;
         const i = document.getElementById('in-topic').value;
-        const payload = { lang: currentLang, topic: s === "NEW" ? i : s, target: document.getElementById('in-word').value, trans: document.getElementById('in-mean').value };
-        if(!payload.target || !payload.trans) return;
+        const target = document.getElementById('in-word').value;
+        const trans = document.getElementById('in-mean').value;
+        
+        if(!target || !trans) return alert("Fill all fields");
+        
+        const payload = { 
+            lang: currentLang, 
+            topic: s === "NEW" ? i : s, 
+            target: target, 
+            trans: trans 
+        };
         
         document.getElementById('save-btn').innerText = "SAVING...";
         await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
         
-        document.getElementById('in-word').value = ""; document.getElementById('in-mean').value = "";
-        await fetchCloudData();
-        switchView('star');
+        document.getElementById('in-word').value = ""; 
+        document.getElementById('in-mean').value = "";
         document.getElementById('save-btn').innerText = "SAVE TO CLOUD";
+        await fetchCloudData();
+        switchView('study');
     }
-
-    window.onload = () => switchLang('Thai');
 </script>
 </body>
 </html>
