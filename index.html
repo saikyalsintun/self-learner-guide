@@ -48,7 +48,6 @@
         .vocab-word { font-size: 22px; font-weight: 600; color: #fff; display: block; }
         .vocab-mean { font-size: 14px; color: var(--text-light); }
         
-        /* New styling for category grouping */
         .category-header { 
             margin-top: 25px; color: var(--accent); font-weight: 800; 
             font-size: 12px; text-transform: uppercase; border-bottom: 1px solid var(--primary);
@@ -183,13 +182,13 @@
         try {
             const cloudRes = await fetch(SCRIPT_URL);
             customData = await cloudRes.json();
-            updateTopicDropdown(); // Update the dropdown options when data arrives
+            updateTopicDropdown(); 
+            populateChapters(); // Rebuild chapter lists with cloud topics
             document.getElementById('status').innerText = "Cloud Live";
             if(currentView === 'star') renderStarList();
         } catch (e) { document.getElementById('status').innerText = "Offline Mode"; }
     }
 
-    // New logic to populate the Category Dropdown
     function updateTopicDropdown() {
         const select = document.getElementById('select-topic');
         const currentTopics = [...new Set(customData.filter(i => i.lang === currentLang).map(i => i.topic))].filter(Boolean);
@@ -216,9 +215,16 @@
     function populateChapters() {
         const sSel = document.getElementById('study-chapter');
         const gSel = document.getElementById('game-chapter');
-        const opts = rawData.map((ch, i) => `<option value="${i}">${ch.Chapter_name || 'Chapter '+(i+1)}</option>`).join('');
-        sSel.innerHTML = opts;
-        gSel.innerHTML = `<option value="cloud">⭐ My Saved Words</option>` + opts;
+        
+        // 1. Generate Local JSON Options
+        const localOpts = rawData ? rawData.map((ch, i) => `<option value="${i}">${ch.Chapter_name || 'Chapter '+(i+1)}</option>`).join('') : "";
+        
+        // 2. Generate Cloud Topic Options
+        const cloudTopics = [...new Set(customData.filter(i => i.lang === currentLang).map(i => i.topic))].filter(Boolean);
+        const cloudOpts = cloudTopics.map(topic => `<option value="cloud:${topic}">⭐ Topic: ${topic}</option>`).join('');
+
+        sSel.innerHTML = localOpts;
+        gSel.innerHTML = cloudOpts + localOpts;
     }
 
     function renderStudy() {
@@ -277,10 +283,14 @@
 
     function resetGame() {
         const sel = document.getElementById('game-chapter').value;
-        if (sel === "cloud") {
-            const filtered = customData.filter(item => item.lang === currentLang);
+        const display = document.getElementById('game-display');
+
+        if (sel && sel.startsWith("cloud:")) {
+            const targetTopic = sel.replace("cloud:", "");
+            const filtered = customData.filter(item => item.lang === currentLang && item.topic === targetTopic);
+            
             if(filtered.length < 2) {
-                document.getElementById('game-display').innerHTML = `<p style='text-align:center; padding-top:100px;'>Add at least 2 words first!</p>`;
+                display.innerHTML = `<p style='text-align:center; padding-top:100px;'>Topic "${targetTopic}" needs at least 2 words to play!</p>`;
                 return;
             }
             gamePool = filtered.map(item => ({ t: item.target, e: item.trans }));
@@ -326,7 +336,6 @@
         }
     }
 
-    // New logic to render by category grouping
     function renderStarList() {
         const display = document.getElementById('star-display');
         const filtered = customData.filter(item => item.lang === currentLang);
@@ -337,7 +346,6 @@
             return;
         }
 
-        // Grouping logic
         const groups = {};
         filtered.forEach(item => {
             const topic = item.topic || "Uncategorized";
